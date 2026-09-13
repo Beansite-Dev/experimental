@@ -4,6 +4,7 @@ Idea:
 //for files
 "asBG2348dddf":{//object name. this will be the id in the filesystem. It should be a randomized string
   name:"File1",//recognized name in fs
+  type:"txt",
   data:"string or blob go here",
   metadata:{//file policies
     access:{
