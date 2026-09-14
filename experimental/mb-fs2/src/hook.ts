@@ -5,5 +5,5 @@ export const useFileSystem=()=>{
   const[fs,setFs]=useAtom(fsAtom);
   const[dirTree,setDirTree]=useAtom(directoryTreeAtom);
 
-  return {fs,dirTree};
+  return{fs,dirTree};
 }

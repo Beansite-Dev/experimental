@@ -1,8 +1,8 @@
 declare namespace mbfs {
   declare interface userPerms {
-    administraor:boolean;
-    user:boolean;
-    guest:boolean;
+    administrators:boolean;
+    users:boolean;
+    guests:boolean;
   }
   declare interface metadata {
     access:{
