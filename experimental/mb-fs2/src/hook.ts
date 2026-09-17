@@ -1,4 +1,3 @@
-// src/useMyHook.ts
 import { useAtom } from 'jotai';
 import { directoryTreeAtom, fsAtom } from './atom.js'
 export const useFileSystem=():[
