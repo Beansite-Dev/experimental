@@ -1,37 +1,20 @@
-declare namespace mbfs {
-  declare interface userPerms {
-    administrators:boolean;
-    users:boolean;
-    guests:boolean;
-  }
-  declare interface metadata {
-    access:{
-      read:userPerms;
-      write:userPerm;
-    }
-    date:{
-      created:Date;
-      modified:Date;
-      accessed:Date;
-    }
-    originalCreator:string;
-    typeof:{
-      system:boolean;
-      directory:boolean;
-      executable:boolean;
-    }
-  }
-  declare interface Object {
-    name:string;
-    metadata:metadata;
-  }
-  declare interface File extends Object {
-    type:string;
-    data:Blob|string|number|boolean;
-  }
-  declare interface Directory extends Object {
-    data:{
-      [key:string]:File|Directory,
-    };
+import * as z from "zod";
+import{ 
+  type userPerms as UserPermsT, 
+  date, 
+  metadata, 
+  obj,
+  file,
+  dir,
+}from"./atom.js";
+declare global {
+  namespace mbfs {
+    type userPerms=UserPermsT;
+    type date=z.infer<typeof date>;
+    type metadata=z.infer<typeof metadata>;
+    type obj=z.infer<typeof obj>;
+    type File=z.infer<typeof file>
+    type Directory=z.infer<typeof dir>
   }
 }
+export {}
