@@ -41,7 +41,7 @@ export const file=obj.extend({
     z.number().transform(String),
   ]),
 });
-export const dir=obj.extend({get data(){return z.record(z.uuidv4(),z.union([file,dir]))},});
+export const dir=obj.extend({get data():z.ZodRecord<z.ZodUUID,z.ZodUnion<[typeof file,typeof dir]>>{return z.record(z.uuidv4(),z.union([file,dir]))},});
 export namespace mbfs {
   export type userPerms=UserPermsT;
   export type date=z.infer<typeof date>;
@@ -54,7 +54,67 @@ export const fsAtom=atom<mbfs.Directory>({
   name:"root",
   data:{
     [uuidv4()]:{
-      name:"File1",
+      name:"Programs",
+      data:{
+        [uuidv4()]:{
+          name:"programs",
+          type:"txt",
+          data:"programs wil go here",
+          metadata:{
+            access:{
+              read:{
+                administrators:true,
+                users:true,
+                guests:false,
+              },
+              write:{
+                administrators:true,
+                users:false,
+                guests:false,
+              },
+            },
+            date:{
+              created:new Date(),
+              modified:new Date(),
+              accessed:new Date(),
+            },
+            originalCreator:"administrator",
+            typeof:{
+              system:false,
+              directory:false,
+              executable:false,
+            }
+          },
+        },   
+      },
+      metadata:{
+        access:{
+          read:{
+            administrators:true,
+            users:true,
+            guests:false,
+          },
+          write:{
+            administrators:true,
+            users:false,
+            guests:false,
+          },
+        },
+        date:{
+          created:new Date(),
+          modified:new Date(),
+          accessed:new Date(),
+        },
+        originalCreator:"root",
+        typeof:{
+          system:true,
+          directory:true,
+          executable:false,
+        }
+      },
+    },
+    [uuidv4()]:{
+      name:"README",
       type:"txt",
       data:"string or blob go here",
       metadata:{

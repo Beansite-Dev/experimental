@@ -1,11 +1,11 @@
 {
   "name": "mb-fs2",
-  "version": "1.6.0",
+  "version": "1.12.19",
   "description": "",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
       "import": {
@@ -27,11 +27,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "BeansiteDev",
   "license": "ISC",
   "peerDependencies": {
-    "jotai": ">=2.0.0",
-    "react": ">=18.0.0",
+    "jotai": ">=3.0.0",
+    "react": ">=19.3.0",
     "uuid": "^14.0.2",
     "zod": "^4.6.5"
   },
@@ -43,12 +43,13 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
     "jotai": "^3.0.0",
     "react": "^19.3.0",
-    "uuid": "^14.0.2",
-    "zod": "^4.6.5",
     "tsdown": "^0.23.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "uuid": "^14.0.2",
+    "zod": "^4.6.5"
   },
   "packageManager": "pnpm@12.5.1+sha512.e3f305bc784a2bc89f5ad3b6138889470fae8d2af5f36b61216ec91c2c3d64089775f9de38aac331044ea40f245cb0d5666392dfdf65824e1907ef6a2c62de5f"
 }
