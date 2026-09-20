@@ -12,8 +12,8 @@ export const date=z.object({
   modified:z.date().default(new Date()).optional(),
   accessed:z.date().default(new Date()).optional(),
 });
-export type userPerms=z.infer<typeof userPermsS>;
-export const defaultUserPerms=(x:boolean[]=[]):userPerms=>userPermsS.keyof().options.reduce((o,k,i)=>({...o,[k]:x[i]}),{})as userPerms;
+export type UserPermsT=z.infer<typeof userPermsS>;
+export const defaultUserPerms=(x:boolean[]=[]):UserPermsT=>userPermsS.keyof().options.reduce((o,k,i)=>({...o,[k]:x[i]}),{})as UserPermsT;
 export const userPermsWithDefault=userPermsS.default(defaultUserPerms([false,false,false]));
 export const metadata=z.object({
   access:z.object({
@@ -42,6 +42,14 @@ export const file=obj.extend({
   ]),
 });
 export const dir=obj.extend({get data(){return z.record(z.uuidv4(),z.union([file,dir]))},});
+export namespace mbfs {
+  export type userPerms=UserPermsT;
+  export type date=z.infer<typeof date>;
+  export type metadata=z.infer<typeof metadata>;
+  export type obj=z.infer<typeof obj>;
+  export type File=z.infer<typeof file>
+  export type Directory=z.infer<typeof dir>
+}
 export const fsAtom=atom<mbfs.Directory>({
   name:"root",
   data:{
@@ -102,4 +110,4 @@ export const fsAtom=atom<mbfs.Directory>({
     },
   },
 });
-export const directoryTreeAtom=atom<string[]>(["root"]);
+export const directoryTreeAtom=atom<string[]>([]);
