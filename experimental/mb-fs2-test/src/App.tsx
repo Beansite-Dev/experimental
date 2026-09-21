@@ -111,7 +111,7 @@ export const App=({}):ReactElement=>{
     <Browser scope={scope} fsMod={fsMod} directoryTree={directoryTree}/>
     <hr/>
     <span style={{minHeight:"1rem !important",display:"block"}}>
-      dir tree: {fsMod.getDirTree().join("/")||"(empty...)"}
+      dir tree: {fsMod.getNamesFromUuids(directoryTree).join("/")||"(empty...)"}
     </span>
     <hr/>
     <button className={tab===0?"active":""} onClick={()=>setTab(0)}>Current Scope</button>
