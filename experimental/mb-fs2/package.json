@@ -1,6 +1,6 @@
 {
   "name": "mb-fs2",
-  "version": "1.12.19",
+  "version": "1.14.20",
   "description": "",
   "type": "module",
   "main": "./dist/index.js",
