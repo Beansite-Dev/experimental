@@ -4,7 +4,7 @@
   "terminal.integrated.localEchoEnabled": "off",
   "terminal.integrated.fontSize": 16,
   "workbench.startupEditor": "none",
-  "editor.fontFamily": "JetBrains Mono, Menlo, Monaco, Courier New, monospace",
+  "editor.fontFamily": "JetBrains Mono, Fira Code, Menlo, Monaco, Courier New, monospace",
   "editor.fontWeight": "normal",
   "editor.fontSize": 22,
   "editor.lineHeight": 1.5,
