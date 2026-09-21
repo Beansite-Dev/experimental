@@ -16,6 +16,7 @@ type modTypes={
   //modifiers
   createFile:(path:string[],fileData:mbfs.File)=>void;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
+  // put types here, follow format
 };
 export const useFileSystem=():[
   mbfs.Directory,//full filesystem
@@ -116,6 +117,8 @@ export const useFileSystem=():[
       setFs(next);
       setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
     },
+
+    // zach ur code goes here
   };
   return[fs,scope,dirTree,mods];
 }
