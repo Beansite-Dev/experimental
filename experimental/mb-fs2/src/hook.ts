@@ -16,6 +16,7 @@ type modTypes={
   //modifiers
   createFile:(path:string[],fileData:mbfs.File)=>void;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
+  deleteFile:(path:string[],uuidOfFile:string)=>void;
   // put types here, follow format
 };
 export const useFileSystem=():[
@@ -118,8 +119,16 @@ export const useFileSystem=():[
       setFs(next);
       setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
     },
-
-    // deleteFile:(pat)
+    deleteFile:(path:string[],uuidOfFile:string):void=>{
+      const remove=(currentDirectory:mbfs.Directory,i:number):mbfs.Directory=>{
+        const node=currentDirectory.data[uuidOfFile];
+        const uuidOfStep=path[i];
+        if(uuidOfStep===undefined)return{...currentDirectory,data:Object.fromEntries(Object.entries(currentDirectory.data).filter(([k])=>k!==uuidOfFile))};
+        if(!node)throw new FileNotFoundError(`No present entry with uuid ${uuidOfFile} in "${currentDirectory.name}"`);
+        return{...currentDirectory,data:{...currentDirectory.data,[uuidOfStep]:remove(currentDirectory.data[uuidOfStep] as mbfs.Directory,i+1)}};
+      };
+      
+    }
   };
   return[fs,scope,dirTree,mods];
 }
