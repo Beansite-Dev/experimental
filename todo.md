@@ -1,7 +1,7 @@
 # Plans
 ## general
 - add comments you bum (denial said so)
-
+- add git submodules for mb-fs2
 
 ## mb-fs2
 #### todo
@@ -20,6 +20,11 @@
   - idea is all inits and other systems would require a filesystem pointer, and will cease to work if that pointer is missing.
   - I intend to make all app actually exist as files (under the `exe` type with `object.metadata.typeof.executable` as `true`)
     - These apps will have special metadata which i will add to the file types in mb-fs2 and will be likely be able to store data in the filesystem
+
+
+## mb-win2
+- this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
+- I want to not have to rely on a system like react-rnd for dragging or anything since maximization was a pain, but if im forced to, ill make it work better hopefully idk
 
 
 ## beansite 8.2 (placeholder name)
