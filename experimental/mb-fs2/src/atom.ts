@@ -170,4 +170,5 @@ export const fsAtom=atom<mbfs.Directory>({
     },
   },
 });
-export const directoryTreeAtom=atom<string[]>([]);
+//!incorrect code: directory tree should be based in separate calls to the hook, not global
+// export const directoryTreeAtom=atom<string[]>([]);

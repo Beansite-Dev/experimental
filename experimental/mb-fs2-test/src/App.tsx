@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import "./app.css";
 export const App=({}):ReactElement=>{
@@ -9,6 +9,9 @@ export const App=({}):ReactElement=>{
     fsMod,
   ]=useFileSystem();
   const[tab,setTab]=useState<number>(0);
+  useEffect(()=>{
+    
+  });
   const Browser=():ReactElement=>{
     const[openFile,setOpenFile]=useState<mbfs.File|null>(null);
     return(<><div className="browser">
@@ -16,7 +19,7 @@ export const App=({}):ReactElement=>{
         <span>browser</span>
         <div className="hrv"/>
         <button onClick={()=>{
-          fsMod.goToParentDirectory();
+          fsMod.enterParentDirectory();
         }}>^parent dir</button>
       </div>
       {Object.keys(scope.data).map(x=>{
@@ -46,7 +49,7 @@ export const App=({}):ReactElement=>{
     <Browser/>
     <hr/>
     <span style={{minHeight:"1rem !important",display:"block"}}>
-      dir tree: {fsMod.stringifyDirTree().join("/")||"(empty...)"}
+      dir tree: {fsMod.getDirTree().join("/")||"(empty...)"}
     </span>
     <hr/>
     <button className={tab===0?"active":""} onClick={()=>setTab(0)}>Current Scope</button>
