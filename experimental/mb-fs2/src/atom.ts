@@ -59,7 +59,7 @@ export const fsAtom=atom<mbfs.Directory>({
         [uuidv4()]:{
           name:"programs",
           type:"txt",
-          data:"programs wil go here",
+          data:"programs will go here",
           metadata:{
             access:{
               read:{
@@ -171,4 +171,4 @@ export const fsAtom=atom<mbfs.Directory>({
   },
 });
 //!incorrect code: directory tree should be based in separate calls to the hook, not global
-// export const directoryTreeAtom=atom<string[]>([]);
+// export const directoryTreeAtom=atom<string[]>([]);uuidv4
