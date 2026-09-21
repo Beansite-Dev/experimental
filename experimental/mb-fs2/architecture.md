@@ -27,7 +27,7 @@ Idea:
     originalCreator:"*username*",
     typeof:{
       system:false,
-      directory:true,
+      directory:false,
     }
   },
 }

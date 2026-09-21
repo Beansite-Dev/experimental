@@ -1,7 +1,8 @@
 import { useAtom } from 'jotai';
-import { fsAtom, type mbfs } from './atom.js';
+import { dir, file, fsAtom, type mbfs } from './atom.js';
 import { useState } from "react";
 import { DirectoryNotFoundError, FileNotFoundError } from './exceptions.js';
+import { v4 as uuidv4 } from 'uuid';
 type modTypes={
   //directory movement
   enterDirectoryFromScope:(uuid:string)=>void;
@@ -12,6 +13,9 @@ type modTypes={
   getFilesystemObjectInfo:(path:string[],childName:string)=>mbfs.File|mbfs.Directory;
   getUuidsFromNames:(names:string[])=>string[];
   getNamesFromUuids:(uuids:string[])=>string[];
+  //modifiers
+  createFile:(path:string[],fileData:mbfs.File)=>void;
+  createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
 };
 export const useFileSystem=():[
   mbfs.Directory,//full filesystem
@@ -80,6 +84,37 @@ export const useFileSystem=():[
         d=n as mbfs.Directory;
       }
       return names;
+    },
+    createFile:(path:string[],fileData:mbfs.File):void=>{
+      const parsed=file.parse(fileData);
+      const uuid=uuidv4();
+      const insert=(d:mbfs.Directory,i:number):mbfs.Directory=>{
+        const u=path[i];
+        if(u===undefined)return{...d,data:{...d.data,[uuid]:parsed}};
+        const n=d.data[u];
+        if(!n)throw new DirectoryNotFoundError(`no entry with uuid ${u} in "${d.name}"`);
+        if(!n.metadata.typeof.directory)throw new DirectoryNotFoundError(`"${n.name}" (${u}) is a file, not a directory`);
+        return{...d,data:{...d.data,[u]:insert(n as mbfs.Directory,i+1)}};
+      };
+      const next=insert(fs,0);
+      setFs(next);
+      setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
+    },
+    createDirectory:(path:string[],dirData:mbfs.Directory):void=>{
+      const parsed=dir.parse(dirData);
+      if(!parsed.metadata.typeof.directory)throw new TypeError(`"${parsed.name}" must have metadata.typeof.directory set to true`);
+      const uuid=uuidv4();
+      const insert=(d:mbfs.Directory,i:number):mbfs.Directory=>{
+        const u=path[i];
+        if(u===undefined)return{...d,data:{...d.data,[uuid]:parsed}};
+        const n=d.data[u];
+        if(!n)throw new DirectoryNotFoundError(`no entry with uuid ${u} in "${d.name}"`);
+        if(!n.metadata.typeof.directory)throw new DirectoryNotFoundError(`"${n.name}" (${u}) is a file, not a directory`);
+        return{...d,data:{...d.data,[u]:insert(n as mbfs.Directory,i+1)}};
+      };
+      const next=insert(fs,0);
+      setFs(next);
+      setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
     },
   };
   return[fs,scope,dirTree,mods];

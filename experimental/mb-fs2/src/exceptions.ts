@@ -10,3 +10,9 @@ export class FileNotFoundError extends Error {
     this.name="FileNotFoundError";
   }
 }
+export class PermissionDeniedError extends Error {
+  constructor(message:string) {
+    super(message);
+    this.name="PermissionDeniedError";
+  }
+}
