@@ -86,6 +86,12 @@ const Browser=({scope,fsMod,directoryTree}:{
         <span>{(m?.typeof?.directory?"[dir]":`.${(scope.data[x]as mbfs.File).type}`)as string}</span>
         <div className="hrv"/>
         <span style={{fontSize:".5rem",opacity:".75"}}>uuid:{x}</span>
+        <div className="hrv"/>
+        <button onClick={(e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+          fsMod.deleteFilesystemObject(directoryTree,x);
+        }}>delete</button>
       </div>);
     })}
   </div><br/>

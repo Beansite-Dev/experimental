@@ -6,7 +6,7 @@
 ## mb-fs2
 #### todo
 - implement more functions in mb-fs2/hook.ts
-  - Add functions delete and modify files                                                                           <-[assigned to zach]
+  - Add function to modify files                                                                           <-[assigned to zach]
     - for modifying files, when `data` is updated, `metadata.date.modified` should be changed as well.
     - file modifications should not change the uuid of anything (this may be an issue)
 
@@ -16,6 +16,7 @@
   - Function (internal maybe) for browsing thru the filesystem like setting scope (review mb8.1 codebase for ref)
   - Implement a file getter
   - File creation
+  - File Deletion
 - Possibly implement a built in version of the file explorer thats style can be modified  
 
 

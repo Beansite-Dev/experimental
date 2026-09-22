@@ -88,6 +88,19 @@ body {
     gap: .25rem;
     cursor: pointer;
     transition: .15s;
+    button {
+      font-size: .5rem;
+      background: #151515;
+      transition: .15s;
+      &:hover {
+        background: #fff;
+        color: #151515;
+      }
+      &:active{
+        border: #151515 2px solid;
+        outline: 1px solid #fff;
+      }
+    }
     &:hover {
       background: #fff;
       color: #151515;
