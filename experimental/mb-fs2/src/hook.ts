@@ -9,7 +9,6 @@ type modTypes={
   enterParentDirectory:()=>void;
   enterDirectoryFromPath:(path:string[])=>void;
   //getters
-  // getDirTree:()=>string[];//!redundant
   getFilesystemObjectInfo:(path:string[],childName:string)=>mbfs.File|mbfs.Directory;
   getUuidsFromNames:(names:string[])=>string[];
   getNamesFromUuids:(uuids:string[])=>string[];
@@ -17,7 +16,7 @@ type modTypes={
   createFile:(path:string[],fileData:mbfs.File)=>void;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
   deleteFilesystemObject:(path:string[],uuidOfFile:string)=>void;
-  // put types here, follow format
+  modifyFileAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>)=>void;
 };
 export const useFileSystem=():[
   mbfs.Directory,//full filesystem
@@ -130,6 +129,9 @@ export const useFileSystem=():[
       const next=remove(fs,0);
       setFs(next);
       setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
+    },
+    modifyFileAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>):void=>{
+
     }
   };
   return[fs,scope,dirTree,mods];
