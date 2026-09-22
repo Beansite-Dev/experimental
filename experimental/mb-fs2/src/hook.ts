@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai';
 import { dir, file, fsAtom, type mbfs } from './atom.js';
 import { useState } from "react";
-import { DirectoryNotFoundError, FileNotFoundError } from './exceptions.js';
+import { DirectoryNotFoundError, FileNotFoundError, FilesystemObjectTypeError } from './exceptions.js';
 import { v4 as uuidv4 } from 'uuid';
 type modTypes={
   //directory movement
@@ -16,7 +16,7 @@ type modTypes={
   createFile:(path:string[],fileData:mbfs.File)=>void;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
   deleteFilesystemObject:(path:string[],uuidOfFile:string)=>void;
-  modifyFileAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>)=>void;
+  modifyFilesysteObjectAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>)=>void;
 };
 export const useFileSystem=():[
   mbfs.Directory,//full filesystem
@@ -31,7 +31,7 @@ export const useFileSystem=():[
     enterDirectoryFromScope:(uuid:string):void=>{
       const node=scope.data[uuid];
       if(!node)throw new DirectoryNotFoundError(`no entry with uuid ${uuid} in "${scope.name}"`);
-      if(!node.metadata.typeof.directory)throw new DirectoryNotFoundError(`"${node.name}" (${uuid}) is a file, not a directory`);
+      if(!node.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${node.name}" (${uuid}) is a file, not a directory`);
       setScope(node as mbfs.Directory);
       setDirTree(t=>[...t,uuid]);
     },
@@ -44,7 +44,7 @@ export const useFileSystem=():[
       for(const u of path){
         const n=d.data[u];
         if(!n)throw new DirectoryNotFoundError(`no entry with uuid ${u} in "${d.name}"`);
-        if(!n.metadata.typeof.directory)throw new DirectoryNotFoundError(`"${n.name}" (${u}) is a file, not a directory`);
+        if(!n.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${n.name}" (${u}) is a file, not a directory`);
         d=n as mbfs.Directory;
       }
       setScope(d);
@@ -81,7 +81,7 @@ export const useFileSystem=():[
       for(const uuid of uuids){
         const node=d.data[uuid];
         if(!node)throw new DirectoryNotFoundError(`no entry with uuid ${uuid} in "${d.name}"`);
-        if(!node.metadata.typeof.directory)throw new DirectoryNotFoundError(`"${node.name}" (${uuid}) is a file, not a directory`);
+        if(!node.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${node.name}" (${uuid}) is a file, not a directory`);
         names.push(node.name);
         d=node as mbfs.Directory;
       }
@@ -95,7 +95,7 @@ export const useFileSystem=():[
         if(uuidOfStep===undefined)return{...currentDirectory,data:{...currentDirectory.data,[uuidOfNewFile]:parsed}};
         const node=currentDirectory.data[uuidOfStep];
         if(!node)throw new DirectoryNotFoundError(`no entry with uuid ${uuidOfStep} in "${currentDirectory.name}"`);
-        if(!node.metadata.typeof.directory)throw new DirectoryNotFoundError(`"${node.name}" (${uuidOfStep}) is a file, not a directory`);
+        if(!node.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${node.name}" (${uuidOfStep}) is a file, not a directory`);
         return{...currentDirectory,data:{...currentDirectory.data,[uuidOfStep]:insert(node as mbfs.Directory,i+1)}};
       };
       const next=insert(fs,0);
@@ -111,7 +111,7 @@ export const useFileSystem=():[
         if(uuidOfCurrent===undefined)return{...currentDirectory,data:{...currentDirectory.data,[uuidOfNewDir]:parsed}};
         const node=currentDirectory.data[uuidOfCurrent];
         if(!node)throw new DirectoryNotFoundError(`no entry with uuid ${uuidOfCurrent} in "${currentDirectory.name}"`);
-        if(!node.metadata.typeof.directory)throw new DirectoryNotFoundError(`"${node.name}" (${uuidOfCurrent}) is a file, not a directory`);
+        if(!node.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${node.name}" (${uuidOfCurrent}) is a file, not a directory`);
         return{...currentDirectory,data:{...currentDirectory.data,[uuidOfCurrent]:insert(node as mbfs.Directory,i+1)}};
       };
       const next=insert(fs,0);
@@ -130,9 +130,26 @@ export const useFileSystem=():[
       setFs(next);
       setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
     },
-    modifyFileAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>):void=>{
-
-    }
+    modifyFilesysteObjectAttributes:(path:string[],uuidOfObject:string,newAttributes:Partial<mbfs.File>|Partial<mbfs.Directory>):void=>{
+      const insert=(currentDirectory:mbfs.Directory,i:number):mbfs.Directory=>{
+        const uuidOfCurrent=path[i];
+        if(uuidOfCurrent===undefined){
+          const existing=currentDirectory.data[uuidOfObject];
+          if(!existing)throw new FileNotFoundError(`no entry with uuid ${uuidOfObject} in "${currentDirectory.name}"`);
+          const parsed=existing.metadata.typeof.directory
+            ?dir.parse({...existing,...newAttributes})
+            :file.parse({...existing,...newAttributes});
+          return{...currentDirectory,data:{...currentDirectory.data,[uuidOfObject]:parsed}};
+        }
+        const node=currentDirectory.data[uuidOfCurrent];
+        if(!node)throw new DirectoryNotFoundError(`no entry with uuid ${uuidOfCurrent} in "${currentDirectory.name}"`);
+        if(!node.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${node.name}" (${uuidOfCurrent}) is a file, not a directory`);
+        return{...currentDirectory,data:{...currentDirectory.data,[uuidOfCurrent]:insert(node as mbfs.Directory,i+1)}};
+      };
+      const nextFs=insert(fs,0);
+      setFs(nextFs);
+      setScope(dirTree.reduce((directory,uuid)=>directory.data[uuid] as mbfs.Directory,nextFs));
+    },
   };
   return[fs,scope,dirTree,mods];
 }

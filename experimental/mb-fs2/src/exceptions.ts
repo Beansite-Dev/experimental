@@ -16,3 +16,9 @@ export class PermissionDeniedError extends Error {
     this.name="PermissionDeniedError";
   }
 }
+export class FilesystemObjectTypeError extends Error {
+  constructor(message:string) {
+    super(message);
+    this.name="FilesystemObjectTypeError";
+  }
+}

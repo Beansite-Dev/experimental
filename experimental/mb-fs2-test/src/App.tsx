@@ -92,6 +92,18 @@ const Browser=({scope,fsMod,directoryTree}:{
           e.stopPropagation();
           fsMod.deleteFilesystemObject(directoryTree,x);
         }}>delete</button>
+        <button onClick={(e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+          fsMod.modifyFilesysteObjectAttributes(directoryTree,x,{name:prompt("new name?")||n.name});
+        }}>rename</button>
+        {!m?.typeof?.directory?
+        <button onClick={(e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+          //@ts-expect-error
+          fsMod.modifyFilesysteObjectAttributes(directoryTree,x,{type:prompt("new type?")||n.type});
+        }}>change type</button>:null}
       </div>);
     })}
   </div><br/>
