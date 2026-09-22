@@ -1,0 +1,36 @@
+{
+  "name": "mb-shell",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc - p ./tsconfig-build.json && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "vite-plugin-dts": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "commitizen": "^4.3.2",
+    "git-cz": "^4.9.0",
+    "glob": "^13.0.6",
+    "husky": "^9.1.7",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vite-plugin-lib-inject-css": "^2.2.2"
+  }
+}
