@@ -2,7 +2,7 @@
 set -m
 ROOT=$(cd "$(dirname "$0")" && pwd)
 LIB="$ROOT/mb-fs2"
-TEST="$ROOT/mb-fs2-test"
+TEST="$ROOT/mb-test"
 MARKER=$(mktemp)
 DEV_PID=
 

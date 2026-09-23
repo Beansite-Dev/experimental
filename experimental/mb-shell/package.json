@@ -1,36 +1,42 @@
 {
   "name": "mb-shell",
-  "private": true,
-  "version": "0.0.0",
+  "author": "m1dnight",
+  "version": "1.0.0",
   "type": "module",
-  "main": "dist/main.js",
-  "types": "dist/main.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc - p ./tsconfig-build.json && vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
+    "build": "tsdown",
+    "dev": "tsdown --watch"
   },
-  "dependencies": {
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "vite-plugin-dts": "^5.1.1"
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
   },
+  "keywords": [],
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.6.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.6.0+sha512.3ef68f951cb111ac204b4a5a16f0b2ddf0da56a96e0413e81d855d9f0b55ef926714709028e1cd00c405c2c5fb7b9e8ec4dc46777c805d0373c2f2ff00fd20ec",
   "devDependencies": {
-    "@types/node": "^24.13.6",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "@vitejs/plugin-react": "^6.1.1",
-    "commitizen": "^4.3.2",
-    "git-cz": "^4.9.0",
-    "glob": "^13.0.6",
-    "husky": "^9.1.7",
-    "oxlint": "^1.81.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.3.0",
-    "vite-plugin-lib-inject-css": "^2.2.2"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tsdown": "^0.23.0",
+    "typescript": "^7.0.2"
   }
 }

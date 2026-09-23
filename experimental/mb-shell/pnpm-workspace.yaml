@@ -1,0 +1,2 @@
+allowBuilds:
+  pnpm: set this to true or false
