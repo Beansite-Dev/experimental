@@ -34,6 +34,7 @@ export const obj=z.object({
 });
 export const file=obj.extend({
   type:z.string(),
+  typeExclusiveMetadata:z.any().optional(),
   data:z.union([
     z.instanceof(Blob),
     z.string(),

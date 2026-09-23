@@ -5,7 +5,7 @@
 
 ## mb-fs2
 #### todo
-- nothing
+- make function to move files and swap file uuids (should be easy)
 
 #### done
 - implement functions in mb-fs2/hook.ts
@@ -18,11 +18,14 @@
 - Possibly implement a built in version of the file explorer thats style can be modified  
 
 
-## mb-shell2
+## mb-shell
 - build commands/libs/init systems into the filesystem directly be linking their scripts to files and create a sandboxed environment where lack of those files would throw errors
   - idea is all inits and other systems would require a filesystem pointer, and will cease to work if that pointer is missing.
   - I intend to make all app actually exist as files (under the `exe` type with `object.metadata.typeof.executable` as `true`)
     - These apps will have special metadata which i will add to the file types in mb-fs2 and will be likely be able to store data in the filesystem
+- I want there to also be an interpretted shell system
+  - every line in beanshell code should check if the command exists in bin
+    - the command should point to the function in lib via searching for strings in an object
 
 
 ## mb-win2
