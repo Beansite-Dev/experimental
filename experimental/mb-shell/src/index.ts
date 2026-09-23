@@ -1,1 +1,2 @@
-export * from './component';
+//tbd
+// export * from './component';
