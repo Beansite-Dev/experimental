@@ -1,2 +1,3 @@
 //tbd
-// export * from './component';
+export * from './components.js';
+export { useShell } from './hook.js';
