@@ -1,6 +1,7 @@
 import { useStore } from "jotai/react";
 import { logAtom } from "./store";
 import { ReactNode } from "react";
+import { useFileSystem } from "mb-fs2";
 //overcomplicated ass jotai atom lmao
 export const useLogs=():[
   ()=>(string[]),//logs getter
@@ -21,6 +22,13 @@ export const useShell=():[
   (code:string)=>void,//interpreter
 ]=>{
   const[logs,setLogs]=useLogs();
+  const[
+    filesystem,
+    scope,
+    dirTree,
+    mods,
+  ]=useFileSystem();
+  //filesystem is persistent but scope is not. Perfect for this 
   const interpreter=(code:string)=>{
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
@@ -32,13 +40,15 @@ export const useShell=():[
           //      /home/dir1/dir2/file.txt
           //          ~/dir1/dir2/file.txt
           //          ./dir1/dir2/file.txt
+          // ..
+          // (dir2)../dir1/dir3/file2.txt
           // these should be converted to the first kind and
           // passed as an array to the filesystem hook
-          
         },
-
+        ls:(dirTree:string[]):void=>{
+          // just list directory contents
+        },
       };
-      const dirTree:string[]=["root"];//temporary, filesys hook should replace
       setLogs(`> ${command}`);
       if(functionMap[parseCommand[0]])
         functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
