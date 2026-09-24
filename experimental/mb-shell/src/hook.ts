@@ -22,7 +22,13 @@ export const useShell=():[
 ]=>{
   const[logs,setLogs]=useLogs();
   const interpreter=(code:string)=>{
-
+    const commands=code.split(/;|\r?\n/);
+    for(const command of commands){
+      const parseCommand=command.trim().split(" ");
+      switch(parseCommand[0]){
+        
+      }
+    };
   };
   return[logs,setLogs,interpreter];
 };
