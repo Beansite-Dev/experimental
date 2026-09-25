@@ -150,7 +150,7 @@ export const App=({}):ReactElement=>{
   ]=useShell();
   const[tab,setTab]=useState<number>(0);
   return<>
-    <h1>mb-fs2 test</h1>
+    <h1>mb-test</h1>
     <Browser {...{scope,fsMod,directoryTree}}/>
     <Shell {...{logs,setLogs,interpreter}}/>
     <hr/>
@@ -162,6 +162,5 @@ export const App=({}):ReactElement=>{
     <button className={tab===1?"active":""} onClick={()=>setTab(1)}>Full Filesystem</button><br/>
     {tab===0?JSON.stringify(scope,null,"  "):null}
     {tab===1?JSON.stringify(filesystem,null,"  "):null}
-    <h1>mb-fs2 test</h1>
   </>;
 };
