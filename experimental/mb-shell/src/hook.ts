@@ -33,7 +33,7 @@ export const useShell=():[
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
       const parseCommand=command.trim().split(" ");
-      const functionMap:{[key:string]:(dirTree:string[],...args:string[])=>void}={
+      const functionMapBase:{[key:string]:(dirTree:string[],...args:string[])=>void}={
         cd:(dirTree:string[],x:string):void=>{
           // Format of paths:
           // C:/users/admin/dir1/dir2/file.txt
@@ -44,14 +44,19 @@ export const useShell=():[
           // (dir2)../dir1/dir3/file2.txt
           // these should be converted to the first kind and
           // passed as an array to the filesystem hook
+          // -> mods.enterDirectoryFromPath(newArr);
         },
         ls:(dirTree:string[]):void=>{
           // just list directory contents
         },
       };
-      setLogs(`> ${command}`);
-      if(functionMap[parseCommand[0]])
-        functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
+      // aliases go here. You can take function from the base function map and just set them to each other
+      const functionMap:(typeof functionMapBase)={
+        ...functionMapBase, 
+        dir:functionMapBase.ls,//<- like this
+      };
+      setLogs(`> ${command}`);//temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
       else setLogs(
         `command not found: ${parseCommand[0]}`
       );
