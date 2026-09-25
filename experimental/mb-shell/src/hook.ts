@@ -36,10 +36,10 @@ export const useShell=():[
       const functionMap:{[key:string]:(dirTree:string[],...args:string[])=>void}={
         cd:(dirTree:string[],x:string):void=>{
           // Format of paths:
-          // /root/home/dir1/dir2/file.txt
-          //      /home/dir1/dir2/file.txt
-          //          ~/dir1/dir2/file.txt
-          //          ./dir1/dir2/file.txt
+          // C:/users/admin/dir1/dir2/file.txt
+          //   /users/admin/dir1/dir2/file.txt
+          //              ~/dir1/dir2/file.txt
+          //           (~)./dir1/dir2/file.txt
           // ..
           // (dir2)../dir1/dir3/file2.txt
           // these should be converted to the first kind and
