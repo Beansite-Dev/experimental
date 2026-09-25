@@ -12,9 +12,9 @@ export const useLogs=():[
   const setLogs=(...x:string[])=>store.set(logAtom,[...logs(),...x]);
   return[logs,setLogs];
 };
-// idea is, a person would wrap thier function in the provider
+// idea is, a person would wrap their function in the provider
 // and then use the useShell hook. Then the user can run the
-// interpreter function and it will inerpret their shell
+// interpreter function and it will interpret their shell
 // input
 export const useShell=():[
   ()=>(string[]),//logs getter
