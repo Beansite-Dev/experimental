@@ -123,12 +123,11 @@ const Shell=({logs,setLogs,interpreter}:{
   interpreter:ReturnType<typeof useShell>[2];
 }):ReactElement=>{
   const scrollContainerRef=useRef<HTMLDivElement|null>(null);
-  useEffect(()=>{
-    if(scrollContainerRef.current) 
-      scrollContainerRef.current.scrollTo({
-        top:scrollContainerRef.current.scrollHeight,
-        behavior:'smooth',
-      });
+  useEffect(()=>{if(scrollContainerRef.current) 
+    scrollContainerRef.current.scrollTo({
+      top:scrollContainerRef.current.scrollHeight,
+      behavior:'smooth',
+    });
   },[logs]);
   return<><div ref={scrollContainerRef} className="shell">
     {logs.map((x,i)=><span key={i}>{x}</span>)}
@@ -165,4 +164,4 @@ export const App=({}):ReactElement=>{
     {tab===1?JSON.stringify(filesystem,null,"  "):null}
     <h1>mb-fs2 test</h1>
   </>;
-}
+};
