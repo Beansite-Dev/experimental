@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
+import { useShell } from "mb-shell";
 import "./app.css";
 const Browser=({scope,fsMod,directoryTree}:{
   scope:mbfs.Directory;
@@ -116,17 +117,36 @@ const Browser=({scope,fsMod,directoryTree}:{
     {openFile.data as string}
   </div>:null}<br/></>);
 };
+const Shell=({logs,setLogs,interpreter}:{
+  logs:ReturnType<typeof useShell>[0];
+  setLogs:ReturnType<typeof useShell>[1];
+  interpreter:ReturnType<typeof useShell>[2];
+}):ReactElement=>{
+  return<div className="shell">
+    {logs.map((x,i)=><span key={i}>{x}</span>)}
+    <input type="text" onKeyDown={(e)=>{
+      if(e.key==="Enter"){
+        interpreter(e.currentTarget.value);
+        e.currentTarget.value="";
+      }
+    }}/>
+  </div>;
+};
 export const App=({}):ReactElement=>{
   const[
+    logs,
+    setLogs,
+    interpreter,
     filesystem,
     scope,
     directoryTree,
     fsMod,
-  ]=useFileSystem();
+  ]=useShell();
   const[tab,setTab]=useState<number>(0);
   return<>
     <h1>mb-fs2 test</h1>
-    <Browser scope={scope} fsMod={fsMod} directoryTree={directoryTree}/>
+    <Browser {...{scope,fsMod,directoryTree}}/>
+    <Shell {...{logs,setLogs,interpreter}}/>
     <hr/>
     <span style={{minHeight:"1rem !important",display:"block"}}>
       dir tree: {fsMod.getNamesFromUuids(directoryTree).join("/")||"(empty...)"}
@@ -136,5 +156,6 @@ export const App=({}):ReactElement=>{
     <button className={tab===1?"active":""} onClick={()=>setTab(1)}>Full Filesystem</button><br/>
     {tab===0?JSON.stringify(scope,null,"  "):null}
     {tab===1?JSON.stringify(filesystem,null,"  "):null}
+    <h1>mb-fs2 test</h1>
   </>;
 }

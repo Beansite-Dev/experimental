@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "mb-fs2": "link:../mb-fs2",
+    "mb-shell": "link:../mb-shell",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

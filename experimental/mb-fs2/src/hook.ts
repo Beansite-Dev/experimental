@@ -1,4 +1,4 @@
-import { useAtom } from 'jotai';
+import { useAtom, type PrimitiveAtom } from 'jotai';
 import { dir, file, fsAtom, type mbfs } from './atom.js';
 import { useState } from "react";
 import { DirectoryNotFoundError, FileNotFoundError, FilesystemObjectTypeError } from './exceptions.js';
@@ -23,6 +23,7 @@ export const useFileSystem=():[
   mbfs.Directory,//currnet scope
   string[],//tree of directory uuids
   modTypes,//functions for mod 
+  PrimitiveAtom<mbfs.Directory>,//atom for filesystem
 ]=>{
   const[fs,setFs]=useAtom(fsAtom);
   const[dirTree,setDirTree]=useState<string[]>([]);
@@ -151,5 +152,5 @@ export const useFileSystem=():[
       setScope(dirTree.reduce((directory,uuid)=>directory.data[uuid] as mbfs.Directory,nextFs));
     },
   };
-  return[fs,scope,dirTree,mods];
+  return[fs,scope,dirTree,mods,fsAtom];
 }

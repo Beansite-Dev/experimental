@@ -1,33 +1,30 @@
-import { useStore } from "jotai/react";
+import { useAtom, useStore } from "jotai/react";
 import { logAtom } from "./store";
 import { ReactNode } from "react";
-import { useFileSystem } from "mb-fs2";
-//overcomplicated ass jotai atom lmao
-export const useLogs=():[
-  ()=>(string[]),//logs getter
-  (...x:string[])=>void,//logs setter
-]=>{
-  const store=useStore()
-  const logs=()=>store.get(logAtom);
-  const setLogs=(...x:string[])=>store.set(logAtom,[...logs(),...x]);
-  return[logs,setLogs];
-};
+import { mbfs, useFileSystem } from "mb-fs2";
+import { getDefaultStore, SetStateAction } from "jotai";
 // idea is, a person would wrap their function in the provider
 // and then use the useShell hook. Then the user can run the
 // interpreter function and it will interpret their shell
 // input
 export const useShell=():[
-  ()=>(string[]),//logs getter
-  (...x:string[])=>void,//logs setter
+  string[],//logs
+  ((update: SetStateAction<string[]>)=>void),//logs setter
   (code:string)=>void,//interpreter
+  ReturnType<typeof useFileSystem>[0],
+  ReturnType<typeof useFileSystem>[1],
+  ReturnType<typeof useFileSystem>[2],
+  ReturnType<typeof useFileSystem>[3],
 ]=>{
-  const[logs,setLogs]=useLogs();
+  const[logs,setLogs]=useAtom(logAtom);
   const[
     filesystem,
     scope,
     dirTree,
     mods,
+    filesystemAtom
   ]=useFileSystem();
+  const store=getDefaultStore();
   //filesystem is persistent but scope is not. Perfect for this 
   const interpreter=(code:string)=>{
     const commands=code.split(/;|\r?\n/);
@@ -44,10 +41,16 @@ export const useShell=():[
           // (dir2)../dir1/dir3/file2.txt
           // these should be converted to the first kind and
           // passed as an array to the filesystem hook
-          // -> mods.enterDirectoryFromPath(newArr);
+          // -> mods.enterDirectoryFromPath(newArrOfUuids);
         },
         ls:(dirTree:string[]):void=>{
           // just list directory contents
+          mods.enterDirectoryFromPath(mods.getUuidsFromNames(dirTree));
+          const freshScope=store.get(filesystemAtom) // not the stale closure `scope`
+          setLogs(x=>[...x,
+            `contents of /${dirTree.join("/")}`,
+            ...Object.keys(freshScope.data).map((key)=>`  ${freshScope.data[key].name}${freshScope.data[key].metadata.typeof.directory?"/":`.${(freshScope.data[key]as mbfs.File).type}`} (${key})`),
+          ]);
         },
       };
       // aliases go here. You can take function from the base function map and just set them to each other
@@ -55,12 +58,20 @@ export const useShell=():[
         ...functionMapBase, 
         dir:functionMapBase.ls,//<- like this
       };
-      setLogs(`> ${command}`);//temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      setLogs(x=>[...x,`> ${command}`]);//temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
-      else setLogs(
+      else setLogs(x=>[...x,
         `command not found: ${parseCommand[0]}`
-      );
+      ]);
     };
   };
-  return[logs,setLogs,interpreter];
+  return[
+    logs,
+    setLogs,
+    interpreter,
+    filesystem,
+    scope,
+    dirTree,
+    mods,
+  ];
 };
