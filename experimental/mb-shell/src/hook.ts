@@ -30,7 +30,7 @@ export const useShell=():[
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
       const parseCommand=command.trim().split(" ");
-      const functionMapBase:{[key:string]:(dirTree:string[],...args:string[])=>void}={
+      const functionMapBase:{[key:string]:((dirTree:string[],...args:string[])=>void)|void}={
         cd:(dirTree:string[],x:string):void=>{
           // Format of paths:
           // C:/users/admin/dir1/dir2/file.txt
@@ -46,17 +46,23 @@ export const useShell=():[
         ls:(dirTree:string[]):void=>{
           // just list directory contents
           mods.enterDirectoryFromPath(mods.getUuidsFromNames(dirTree));
-          const freshScope=store.get(filesystemAtom) // not the stale closure `scope`
+          const freshScope=store.get(filesystemAtom);//fixes the issue of scope not updating in time
           setLogs(x=>[...x,
             `contents of /${dirTree.join("/")}`,
             ...Object.keys(freshScope.data).map((key)=>`  ${freshScope.data[key].name}${freshScope.data[key].metadata.typeof.directory?"/":`.${(freshScope.data[key]as mbfs.File).type}`} (${key})`),
           ]);
         },
+        cls:():void=>{
+          // just list directory contents
+          setLogs([]);
+        },
       };
       // aliases go here. You can take function from the base function map and just set them to each other
-      const functionMap:(typeof functionMapBase)={
-        ...functionMapBase, 
-        dir:functionMapBase.ls,//<- like this
+      const functionMap:Record<string,(dirTree:string[],...args:string[])=>void>={
+        ...functionMapBase,
+        dir: functionMapBase.ls!,
+        clear: functionMapBase.cls!,
+        "cd..":(dirTree:string[])=>functionMapBase.cd?.(dirTree,".."),
       };
       setLogs(x=>[...x,`> ${command}`]);//temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));

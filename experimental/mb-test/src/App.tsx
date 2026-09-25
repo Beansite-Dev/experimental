@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import { useShell } from "mb-shell";
 import "./app.css";
@@ -122,15 +122,22 @@ const Shell=({logs,setLogs,interpreter}:{
   setLogs:ReturnType<typeof useShell>[1];
   interpreter:ReturnType<typeof useShell>[2];
 }):ReactElement=>{
-  return<div className="shell">
+  const scrollContainerRef=useRef<HTMLDivElement|null>(null);
+  useEffect(()=>{
+    if(scrollContainerRef.current) 
+      scrollContainerRef.current.scrollTo({
+        top:scrollContainerRef.current.scrollHeight,
+        behavior:'smooth',
+      });
+  },[logs]);
+  return<><div ref={scrollContainerRef} className="shell">
     {logs.map((x,i)=><span key={i}>{x}</span>)}
-    <input type="text" onKeyDown={(e)=>{
-      if(e.key==="Enter"){
-        interpreter(e.currentTarget.value);
-        e.currentTarget.value="";
-      }
-    }}/>
-  </div>;
+  </div><textarea onKeyDown={(e)=>{
+    if(e.key==="Enter"&&!e.shiftKey){
+      interpreter(e.currentTarget.value);
+      e.currentTarget.value="";
+    }
+  }}/></>;
 };
 export const App=({}):ReactElement=>{
   const[

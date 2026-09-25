@@ -126,4 +126,17 @@ body {
   flex-direction: column;
   gap: 2px;
   padding: 2px;
+  &,*,* *{flex: 0;}
+}
+textarea {
+  width: 35rem;
+  min-height: 2rem;
+  height: fit-content;
+  background: #151515;
+  border: 1px solid #909090 !important;
+  border-top: none !important;
+  color: #fff;
+  outline: none;
+  font-family: monospace;
+  font-size: .75rem;
 }
