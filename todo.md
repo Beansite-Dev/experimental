@@ -29,6 +29,16 @@
     - the command should point to the function in lib via searching for strings in an object
 - add a text color interpreter to allow results from the shell logs to return as full color
   - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling.
+- implement commands
+  - cd
+  - mkdir
+  - cat
+  - grep
+  - echo
+  - rm
+  - rmdir
+  - touch
+- ability to "ex" > file.txt 
 
 #### done
 - added a simple ls command
