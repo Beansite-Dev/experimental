@@ -12,10 +12,10 @@ export const useShell=():[
   string[],//logs
   ((update: SetStateAction<string[]>)=>void),//logs setter
   (code:string)=>void,//interpreter
-  ReturnType<typeof useFileSystem>[0],
-  ReturnType<typeof useFileSystem>[1],
-  ReturnType<typeof useFileSystem>[2],
-  ReturnType<typeof useFileSystem>[3],
+  ReturnType<typeof useFileSystem>[0],//filesystem
+  ReturnType<typeof useFileSystem>[1],//scope
+  ReturnType<typeof useFileSystem>[2],//dirTree (in uuids)
+  ReturnType<typeof useFileSystem>[3],//modifier functions
 ]=>{
   const[logs,setLogs]=useAtom(logAtom);
   const[
