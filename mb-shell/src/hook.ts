@@ -71,7 +71,7 @@ export const useShell=():[
                 read:{
                   administrators:true,
                   users:true,
-                  guests:true
+                  guests:false
                 },
                 write:{
                   administrators:true,
@@ -100,6 +100,37 @@ export const useShell=():[
           } catch (error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
             setLogs(x=>[...x, `Error occurred while deleting file: ${error.message}`]);
           }
+        },
+        mkdir:(dirTree:string[],name:string):void=>{
+          mods.createDirectory(dirTree,{
+            name,
+            data:{},
+            metadata:{
+              access:{
+                read:{
+                  administrators:true,
+                  users:true,
+                  guests:false
+                },
+                write:{
+                  administrators:true,
+                  users:false,
+                  guests:false
+                }
+              },
+              date:{
+                created:new Date(),
+                modified:new Date(),
+                accessed:new Date()
+              },
+              originalCreator:"administrator",
+              typeof:{
+                system:false,
+                directory:true,
+                executable:false
+              }
+            }
+          });
         }
       };
       // aliases go here. You can take function from the base function map and just set them to each other
