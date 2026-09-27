@@ -19,5 +19,6 @@
   "inlineChat.mode": "preview",
   "editor.tabSize": 2,
   "terminal.integrated.fontLigatures.enabled": true,
-  "editor.fontLigatures": true
+  "editor.fontLigatures": true,
+  "workbench.experimental.modernUI": true
 }
