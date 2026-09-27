@@ -5,5 +5,3 @@ export const store=createStore();
 const unsub=store.sub(logAtom,()=>{
 console.log('logs',store.get(logAtom));});
 unsub();
-//use (wrap component in this)
-// <Provider store={store}>{/*...*/}</Provider>

@@ -31,7 +31,7 @@
   - every line in beanshell code should check if the command exists in bin
     - the command should point to the function in lib via searching for strings in an object
 - add a text color interpreter to allow results from the shell logs to return as full color
-  - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling.
+  - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling. [DO THIS LATER]
 - Rework ls/dir to show file details (Size, Modified Date)
 - implement commands
   - cat
