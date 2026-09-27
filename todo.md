@@ -39,7 +39,7 @@
   - rmdir
   - sudo
   - mv
-
+- implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 - ability to "ex" > file.txt 
 
 #### done
