@@ -56,7 +56,6 @@ export const useShell=():[
           ]);
         },
         cls:():void=>{
-          // just list directory contents
           setLogs([]);
         },
         touch:(dirTree:string[],fileName:string):void=>{
