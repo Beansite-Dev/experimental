@@ -1,7 +1,7 @@
 import { useAtom, useStore } from "jotai/react";
 import { logAtom } from "./store";
 import { ReactNode } from "react";
-import { mbfs, useFileSystem } from "mb-fs2";
+import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
 import { parsePath } from "./lib";
 // idea is, a person would wrap their function in the provider
@@ -35,7 +35,7 @@ export const useShell=():[
         cd:(dirTree:string[],inputPath:string):void=>{
           let arrOfFileNames:string[]|{name:string;message:string;};
           try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
-          if(Array.isArray(arrOfFileNames))mods.enterDirectoryFromPath(mods.getUuidsFromNames(arrOfFileNames as string[]));
+          if(Array.isArray(arrOfFileNames))mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
           else setLogs(x=>[...x,
             arrOfFileNames.name,
             arrOfFileNames.message,
@@ -48,7 +48,7 @@ export const useShell=():[
         },
         ls:(dirTree:string[]):void=>{
           // just list directory contents
-          mods.enterDirectoryFromPath(mods.getUuidsFromNames(dirTree));
+          mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(dirTree));
           const freshScope=store.get(filesystemAtom);//fixes the issue of scope not updating in time
           setLogs(x=>[...x,
             `contents of /${dirTree.join("/")}`,
@@ -59,6 +59,48 @@ export const useShell=():[
           // just list directory contents
           setLogs([]);
         },
+        touch:(dirTree:string[],fileName:string):void=>{
+          const name=fileName.split(".")[0];
+          const type=fileName.split(".")[1]||"txt";
+          mods.createFile(dirTree,{
+            name,
+            type,
+            data:"",
+            metadata:{
+              access:{
+                read:{
+                  administrators:true,
+                  users:true,
+                  guests:true
+                },
+                write:{
+                  administrators:true,
+                  users:false,
+                  guests:false
+                }
+              },
+              date:{
+                created:new Date(),
+                modified:new Date(),
+                accessed:new Date()
+              },
+              originalCreator:"administrator",
+              typeof:{
+                system:false,
+                directory:false,
+                executable:false
+              }
+            }
+          });
+        },
+        rm:(dirTree:string[],fileName:string):void=>{
+          const trimmedFileName:string=fileName.split(".")[0];
+          try{
+            mods.deleteFilesystemObject(dirTree,mods.getUuidsFromFileNames([...dirTree,trimmedFileName]).slice(-1)[0]);
+          } catch (error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
+            setLogs(x=>[...x, `Error occurred while deleting file: ${error.message}`]);
+          }
+        }
       };
       // aliases go here. You can take function from the base function map and just set them to each other
       const functionMap:Record<string,(dirTree:string[],...args:string[])=>void>={

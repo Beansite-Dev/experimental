@@ -10,7 +10,8 @@ type modTypes={
   enterDirectoryFromPath:(path:string[])=>void;
   //getters
   getFilesystemObjectInfo:(path:string[],childName:string)=>mbfs.File|mbfs.Directory;
-  getUuidsFromNames:(names:string[])=>string[];
+  getUuidsFromDirectoryNames:(names:string[])=>string[];
+  getUuidsFromFileNames:(names:string[])=>string[];
   getNamesFromUuids:(uuids:string[])=>string[];
   //modifiers
   createFile:(path:string[],fileData:mbfs.File)=>void;
@@ -65,12 +66,23 @@ export const useFileSystem=():[
       if(!n)throw new FileNotFoundError(`no entry with uuid ${uuid} in "${d.name}"`);
       return n;
     },
-    getUuidsFromNames:(names:string[]):string[]=>{
+    getUuidsFromDirectoryNames:(names:string[]):string[]=>{
       let d:mbfs.Directory=fs;
       const uuids:string[]=[];
       for(const name of names){
         const e=Object.entries(d.data).find(([,v])=>v.metadata.typeof.directory&&v.name===name);
         if(!e)throw new DirectoryNotFoundError(`no directory named "${name}" in "${d.name}"`);
+        uuids.push(e[0]);
+        d=e[1] as mbfs.Directory;
+      }
+      return uuids;
+    },
+    getUuidsFromFileNames:(names:string[]):string[]=>{
+      let d:mbfs.Directory=fs;
+      const uuids:string[]=[];
+      for(const name of names){
+        const e=Object.entries(d.data).find(([,v])=>!v.metadata.typeof.directory&&v.name===name);
+        if(!e)throw new FileNotFoundError(`no file named "${name}" in "${d.name}"`);
         uuids.push(e[0]);
         d=e[1] as mbfs.Directory;
       }
@@ -120,6 +132,7 @@ export const useFileSystem=():[
       setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
     },
     deleteFilesystemObject:(path:string[],uuidOfFile:string):void=>{
+      // replace with deleteFile and deleteDirectory and make deleteFile account for types -Zach
       const remove=(currentDirectory:mbfs.Directory,i:number):mbfs.Directory=>{
         const node=currentDirectory.data[uuidOfFile];
         const uuidOfStep=path[i];
