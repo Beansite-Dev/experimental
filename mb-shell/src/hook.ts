@@ -132,6 +132,9 @@ export const useShell=():[
             }
           });
         },
+        whoami:(dirTree:string[]):void=>{
+          setLogs(x=>[...x,`beansite/administrator`]);
+        },
         echo:(dirTree:string[], ...args:string[]):void=>{
           const message=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
           setLogs(x=>[...x, message]);

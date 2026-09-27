@@ -36,11 +36,9 @@
 - implement commands
   - cat
   - grep
-  - echo
   - rmdir
   - sudo
   - mv
-  - whoami
 
 - ability to "ex" > file.txt 
 
@@ -51,6 +49,8 @@
   - touch
   - rm (barely)
   - mkdir
+  - echo
+  - whoami
 
 ## mb-win2
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
