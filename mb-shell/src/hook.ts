@@ -33,9 +33,13 @@ export const useShell=():[
       const parseCommand=command.trim().split(" ");
       const functionMapBase:{[key:string]:((dirTree:string[],...args:string[])=>void)|void}={
         cd:(dirTree:string[],inputPath:string):void=>{
-          const arrOfFileNames=parsePath(inputPath);
-          
-
+          let arrOfFileNames:string[]|{name:string;message:string;};
+          try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
+          if(Array.isArray(arrOfFileNames))mods.enterDirectoryFromPath(mods.getUuidsFromNames(arrOfFileNames as string[]));
+          else setLogs(x=>[...x,
+            arrOfFileNames.name,
+            arrOfFileNames.message,
+          ]);
           // ..
           // (dir2)../dir1/dir3/file2.txt
           // these should be converted to the first kind and
@@ -63,7 +67,7 @@ export const useShell=():[
         clear: functionMapBase.cls!,
         "cd..":(dirTree:string[])=>functionMapBase.cd?.(dirTree,".."),
       };
-      setLogs(x=>[...x,`> ${command}`]);//temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      setLogs(x=>[...x,`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`]);//temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
       else setLogs(x=>[...x,
         `command not found: ${parseCommand[0]}`

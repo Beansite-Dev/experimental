@@ -133,7 +133,9 @@ const Shell=({logs,setLogs,interpreter}:{
     {logs.map((x,i)=><span key={i}>{x}</span>)}
   </div><textarea onKeyDown={(e)=>{
     if(e.key==="Enter"&&!e.shiftKey){
-      interpreter(e.currentTarget.value);
+      e.preventDefault();
+      e.stopPropagation();
+      try{interpreter(e.currentTarget.value);}catch{}
       e.currentTarget.value="";
     }
   }}/></>;
