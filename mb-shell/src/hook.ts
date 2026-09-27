@@ -131,6 +131,10 @@ export const useShell=():[
               }
             }
           });
+        },
+        echo:(dirTree:string[], ...args:string[]):void=>{
+          const message=args.join(" ");
+          setLogs(x=>[...x, message]);
         }
       };
       // aliases go here. You can take function from the base function map and just set them to each other
