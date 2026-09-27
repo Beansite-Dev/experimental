@@ -3,6 +3,7 @@ import { logAtom } from "./store";
 import { ReactNode } from "react";
 import { mbfs, useFileSystem } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
+import { parsePath } from "./lib";
 // idea is, a person would wrap their function in the provider
 // and then use the useShell hook. Then the user can run the
 // interpreter function and it will interpret their shell
@@ -31,12 +32,10 @@ export const useShell=():[
     for(const command of commands){
       const parseCommand=command.trim().split(" ");
       const functionMapBase:{[key:string]:((dirTree:string[],...args:string[])=>void)|void}={
-        cd:(dirTree:string[],x:string):void=>{
-          // Format of paths:
-          // C:/users/admin/dir1/dir2/file.txt
-          //   /users/admin/dir1/dir2/file.txt
-          //              ~/dir1/dir2/file.txt
-          //           (~)./dir1/dir2/file.txt
+        cd:(dirTree:string[],inputPath:string):void=>{
+          const arrOfFileNames=parsePath(inputPath);
+          
+
           // ..
           // (dir2)../dir1/dir3/file2.txt
           // these should be converted to the first kind and
