@@ -6,7 +6,9 @@
 ## mb-fs2
 #### todo
 - make function to move files and swap file uuids (should be easy)
-- block 2 files with the same name in same dir: file.txt file (1).txt 
+- block 2 files with the same name in same dir: file.txt file (1).txt
+- Add function to get file contents from a uuid getFileContentsFromUuid
+- Add function to get file contents from file name getFileContentsFromFileName 
 
 #### done
 - implement functions in mb-fs2/hook.ts
