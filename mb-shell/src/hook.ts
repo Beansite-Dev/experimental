@@ -133,7 +133,7 @@ export const useShell=():[
           });
         },
         echo:(dirTree:string[], ...args:string[]):void=>{
-          const message=args.join(" ");
+          const message=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
           setLogs(x=>[...x, message]);
         }
       };
