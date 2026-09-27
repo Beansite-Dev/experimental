@@ -30,18 +30,19 @@
 - add a text color interpreter to allow results from the shell logs to return as full color
   - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling.
 - implement commands
-  - cd
   - mkdir
   - cat
   - grep
   - echo
-  - rm
   - rmdir
-  - touch
 - ability to "ex" > file.txt 
 
 #### done
-- added a simple ls command
+- implemented commands
+  - cd (kinda)
+  - ls
+  - touch
+  - rm (barely)
 
 ## mb-win2
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
