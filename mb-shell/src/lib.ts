@@ -15,4 +15,9 @@ const parsePath=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
   }
   return inputPath.split("/");
 }
+export const parseError=(name:string,message:string):logs.LogType[]=>{
+  return[
+
+  ];
+}
 export { parsePath };

@@ -34,10 +34,11 @@ declare global{
       t:"l";
       m:string;
     }
+    type LogType=logs.LogMessage|logs.Icon|logs.NewLine;
   }
 }
 export const Log=({logObject}:{
-  logObject:logs.LogMessage|logs.Icon|logs.NewLine
+  logObject:logs.LogType;
 }):ReactElement=>{
   switch(logObject.t){
     case "l":return<span className={`logMessage bg${logObject.bg} clr${logObject.clr}`}>{logObject.m}</span>;

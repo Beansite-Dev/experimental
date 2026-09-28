@@ -3,14 +3,14 @@ import { logAtom } from "./store";
 import { ReactNode } from "react";
 import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
-import { parsePath } from "./lib";
+import { parseError, parsePath } from "./lib";
 // idea is, a person would wrap their function in the provider
 // and then use the useShell hook. Then the user can run the
 // interpreter function and it will interpret their shell
 // input
 export const useShell=():[
-  string[],//logs
-  ((update: SetStateAction<string[]>)=>void),//logs setter
+  logs.LogType[],//logs
+  ((update: SetStateAction<logs.LogType[]>)=>void),//logs setter
   (code:string)=>void,//interpreter
   ReturnType<typeof useFileSystem>[0],//filesystem
   ReturnType<typeof useFileSystem>[1],//scope
@@ -37,11 +37,13 @@ export const useShell=():[
           try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
           if(Array.isArray(arrOfFileNames)){
             mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
-            setLogs(x=>[...x.slice(0,-1),`c:/${arrOfFileNames.join("/")} > ${command}`]);
+            setLogs(x=>[...x.slice(0,-1),{
+              t:"l",m:`c:/${arrOfFileNames.join("/")} > ${command}`
+            }]);
           }
           else setLogs(x=>[...x,
-            arrOfFileNames.name,
-            arrOfFileNames.message,
+            ...parseError(arrOfFileNames.name,
+            arrOfFileNames.message,),
           ]);
         },
         ls:(dirTree:string[]):void=>{
@@ -49,8 +51,11 @@ export const useShell=():[
           mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(dirTree));
           const freshScope=store.get(filesystemAtom);//fixes the issue of scope not updating in time
           setLogs(x=>[...x,
-            `contents of /${dirTree.join("/")}`,
-            ...Object.keys(freshScope.data).map((key)=>`  ${freshScope.data[key].name}${freshScope.data[key].metadata.typeof.directory?"/":`.${(freshScope.data[key]as mbfs.File).type}`} (${key})`),
+            { t:"l", m:`contents of /${dirTree.join("/")}` },
+            ...Object.keys(freshScope.data).map((key)=>{return{
+              t:"l",
+              m:`  ${freshScope.data[key].name}${freshScope.data[key].metadata.typeof.directory?"/":`.${(freshScope.data[key]as mbfs.File).type}`} (${key})`
+            }as logs.LogMessage;}),
           ]);
         },
         cls:():void=>{
@@ -95,7 +100,7 @@ export const useShell=():[
           try{
             mods.deleteFilesystemObject(dirTree,mods.getUuidsFromFileNames([...dirTree,trimmedFileName]).slice(-1)[0]);
           } catch (error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
-            setLogs(x=>[...x, `Error occurred while deleting file: ${error.message}`]);
+            setLogs(x=>[...x, { t:"l", m:`Error occurred while deleting file: ${error.message}` }]);
           }
         },
         mkdir:(dirTree:string[],name:string):void=>{
@@ -130,11 +135,11 @@ export const useShell=():[
           });
         },
         whoami:(dirTree:string[]):void=>{
-          setLogs(x=>[...x,`beansite/administrator`]);
+          setLogs(x=>[...x, { t:"l", m:`beansite/administrator` }]);
         },
         echo:(dirTree:string[], ...args:string[]):void=>{
           const message=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
-          setLogs(x=>[...x, message]);
+          setLogs(x=>[...x, { t:"l", m:message }]);
         }
       };
       // aliases go here. You can take function from the base function map and just set them to each other
@@ -144,10 +149,10 @@ export const useShell=():[
         clear: functionMapBase.cls!,
         "cd..":(dirTree:string[])=>functionMapBase.cd?.(dirTree,".."),
       };
-      setLogs(x=>[...x,`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`]);//temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      setLogs(x=>[...x, { t:"l", m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}` }]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
       else setLogs(x=>[...x,
-        `command not found: ${parseCommand[0]}`
+        ...parseError("CommandNotFoundError",`command not found: ${parseCommand[0]}`),
       ]);
     };
   };
