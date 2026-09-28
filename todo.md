@@ -9,6 +9,7 @@
 - block 2 files with the same name in same dir: file.txt file (1).txt
 - Add function to get file contents from a uuid getFileContentsFromUuid
 - Add function to get file contents from file name getFileContentsFromFileName 
+- Fix file querying functions (like getUuidsFromFileNames) 
 
 #### done
 - implement functions in mb-fs2/hook.ts
@@ -23,6 +24,7 @@
 
 ## mb-shell
 #### todo
+- FIX RM !!
 - build commands/libs/init systems into the filesystem directly be linking their scripts to files and create a sandboxed environment where lack of those files would throw errors
   - idea is all inits and other systems would require a filesystem pointer, and will cease to work if that pointer is missing.
   - I intend to make all app actually exist as files (under the `exe` type with `object.metadata.typeof.executable` as `true`)
@@ -30,8 +32,6 @@
 - I want there to also be an interpreted shell system
   - every line in beanshell code should check if the command exists in bin
     - the command should point to the function in lib via searching for strings in an object
-- add a text color interpreter to allow results from the shell logs to return as full color
-  - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling. [DO THIS LATER]
 - Rework ls/dir to show file details (Size, Modified Date)
 - implement commands
   - cat
@@ -51,6 +51,8 @@
   - mkdir
   - echo
   - whoami
+- add a text color interpreter to allow results from the shell logs to return as full color
+  - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling.
 
 ## mb-win2
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
