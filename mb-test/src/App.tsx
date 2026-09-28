@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
-import { useShell } from "mb-shell";
+import { Log, useShell } from "mb-shell";
 import "./app.scss";
 const Browser=({scope,fsMod,directoryTree}:{
   scope:mbfs.Directory;
@@ -130,7 +130,7 @@ const Shell=({logs,setLogs,interpreter}:{
     });
   },[logs]);
   return<><div ref={scrollContainerRef} className="shell">
-    {logs.map((x,i)=><span key={i}>{x}</span>)}
+    {logs.map((x,i)=><Log logObject={x} key={i}/>)}
   </div><textarea onKeyDown={(e)=>{
     if(e.key==="Enter"&&!e.shiftKey){
       e.preventDefault();
