@@ -125,6 +125,9 @@ body {
   white-space: pre-wrap;
   gap: 2px;
   padding: 2px;
+  .logMessage{
+    font-family: monospace;
+  }
   &,*,* *{flex: 0;}
 }
 textarea {

@@ -11,10 +11,14 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./style.css": "./dist/defaultColorStyles.css"
   },
   "description": "",
   "main": "index.js",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch"
@@ -49,6 +53,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@tsdown/css": "^0.23.0",
     "mb-fs2": "link:../mb-fs2"
   }
 }

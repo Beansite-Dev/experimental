@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import { Log, useShell } from "mb-shell";
 import "./app.scss";
+import "mb-shell/style.css";
 const Browser=({scope,fsMod,directoryTree}:{
   scope:mbfs.Directory;
   fsMod:ReturnType<typeof useFileSystem>[3];

@@ -12,6 +12,8 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { ReactElement } from 'react';
 import { InvalidLogObjectError } from './exceptions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+//@ts-ignore
+import "./logStyles.scss";
 declare global{
   namespace logs{
     interface LogBase{t:"l"|"nl"|"i";}
@@ -41,9 +43,21 @@ export const Log=({logObject}:{
   logObject:logs.LogType;
 }):ReactElement=>{
   switch(logObject.t){
-    case "l":return<span className={`logMessage bg${logObject.bg} clr${logObject.clr}`}>{logObject.m}</span>;
+    case "l":return<span 
+      className={`
+        logMessage 
+        bg${logObject.bg||"Transparent"} 
+        clr${logObject.clr||"White"}
+      `.replaceAll("\n"," ")}>{logObject.m}</span>;
     case "nl":return<br/>;
-    case "i":return<FontAwesomeIcon icon={logObject.i} className={`logMessage icon bg${logObject.bg} clr${logObject.clr}`}/>;
+    case "i":return<FontAwesomeIcon 
+      icon={logObject.i} 
+      className={`
+        logMessage 
+        icon 
+        bg${logObject.bg||"Transparent"} 
+        clr${logObject.clr||"White"}
+      `.replaceAll("\n"," ")}/>;
     default:throw new InvalidLogObjectError("Invalid log object type");
   };
 };

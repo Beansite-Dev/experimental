@@ -1,5 +1,5 @@
 @use "sass:map";
-@import "https://googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap";
+// @import "https://googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap";
 $ColorMap:("Black": #0C0C0C,"BrightBlack": #252525,
 "Gray": #767676,"DarkGray": #454545,"BrightGray": #999,
 "White":#CCCCCC,"BrightWhite":#F2F2F2,
@@ -31,7 +31,7 @@ $ColorMap:("Black": #0C0C0C,"BrightBlack": #252525,
   white-space: pre-wrap;
   word-break: break-all;
   &.noWordBreak{word-break: normal;}
-  &,*:not(.icon){font-family: 'Source Code Pro' !important;}
+  // &,*:not(.icon){font-family: 'Source Code Pro' !important;}
   margin: 0;
   padding: 0;
 }
