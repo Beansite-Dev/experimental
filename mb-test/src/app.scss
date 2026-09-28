@@ -120,10 +120,9 @@ body {
   display: block;
   border: 1px solid #909090;
   overflow: auto;
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  flex-direction: column;
+  text-wrap: break-word;
+  display: block;
+  white-space: pre-wrap;
   gap: 2px;
   padding: 2px;
   &,*,* *{flex: 0;}

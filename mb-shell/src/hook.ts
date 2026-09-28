@@ -37,9 +37,10 @@ export const useShell=():[
           try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
           if(Array.isArray(arrOfFileNames)){
             mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
-            setLogs(x=>[...x.slice(0,-1),{
-              t:"l",m:`c:/${arrOfFileNames.join("/")} > ${command}`
-            }]);
+            setLogs(x=>[...x.slice(0,-2),
+              {t:"l",m:`c:/${arrOfFileNames.join("/")} > ${command}`},
+              {t:"nl"},
+            ]);
           }
           else setLogs(x=>[...x,
             ...parseError(arrOfFileNames.name,
@@ -52,10 +53,10 @@ export const useShell=():[
           const freshScope=store.get(filesystemAtom);//fixes the issue of scope not updating in time
           setLogs(x=>[...x,
             { t:"l", m:`contents of /${dirTree.join("/")}` },
-            ...Object.keys(freshScope.data).map((key)=>{return{
+            ...(Object.keys(freshScope.data).map((key)=>{return[{
               t:"l",
               m:`  ${freshScope.data[key].name}${freshScope.data[key].metadata.typeof.directory?"/":`.${(freshScope.data[key]as mbfs.File).type}`} (${key})`
-            }as logs.LogMessage;}),
+            },{t:"nl"}]}).flat() as logs.LogType[]),
           ]);
         },
         cls:():void=>{
@@ -99,8 +100,8 @@ export const useShell=():[
           const trimmedFileName:string=fileName.split(".")[0];
           try{
             mods.deleteFilesystemObject(dirTree,mods.getUuidsFromFileNames([...dirTree,trimmedFileName]).slice(-1)[0]);
-          } catch (error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
-            setLogs(x=>[...x, { t:"l", m:`Error occurred while deleting file: ${error.message}` }]);
+          }catch(error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
+            setLogs(x=>[...x,...parseError(error.name,error.message)]);
           }
         },
         mkdir:(dirTree:string[],name:string):void=>{
@@ -135,11 +136,11 @@ export const useShell=():[
           });
         },
         whoami:(dirTree:string[]):void=>{
-          setLogs(x=>[...x, { t:"l", m:`beansite/administrator` }]);
+          setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);
         },
         echo:(dirTree:string[], ...args:string[]):void=>{
           const message=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
-          setLogs(x=>[...x, { t:"l", m:message }]);
+          setLogs(x=>[...x, { t:"l", m:message },{t:"nl"}]);
         }
       };
       // aliases go here. You can take function from the base function map and just set them to each other
@@ -149,7 +150,7 @@ export const useShell=():[
         clear: functionMapBase.cls!,
         "cd..":(dirTree:string[])=>functionMapBase.cd?.(dirTree,".."),
       };
-      setLogs(x=>[...x, { t:"l", m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}` }]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      setLogs(x=>[...x, { t:"l", m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}` },{t:"nl"}]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
       else setLogs(x=>[...x,
         ...parseError("CommandNotFoundError",`command not found: ${parseCommand[0]}`),
