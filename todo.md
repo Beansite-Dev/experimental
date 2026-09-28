@@ -47,7 +47,6 @@
   - cd (kinda)
   - ls
   - touch
-  - rm (barely)
   - mkdir
   - echo
   - whoami
