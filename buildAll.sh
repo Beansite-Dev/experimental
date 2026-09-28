@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # this is assuming that zoxide is installed
 # https://github.com/ajeetdsouza/zoxide
 

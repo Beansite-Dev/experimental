@@ -1,0 +1,37 @@
+@use "sass:map";
+@import "https://googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap";
+$ColorMap:("Black": #0C0C0C,"BrightBlack": #252525,
+"Gray": #767676,"DarkGray": #454545,"BrightGray": #999,
+"White":#CCCCCC,"BrightWhite":#F2F2F2,
+"Blue":#0037DA,"DarkBlue":#012456,"BrightBlue":#3B78FF,
+"Green":#13A10E,"DarkGreen":#0b5308,"BrightGreen":#16C60C,
+"Cyan":#3A96DD,"DarkCyan":#235981,"BrightCyan":#61D6D6,
+"Red":#FF0015,"DarkRed":#860a14,"BrightRed":#E74856,
+"Orange":#ff7b00,"DarkOrange":#86370a,"BrightOrange":#e77548,
+"Magenta":#881798,"DarkMagenta":#530D5C,"BrightMagenta":#B4009E,
+"Yellow":#FFCC00,"DarkYellow":#C19C00,"BrightYellow":#F9F1A5,
+"Transparent":transparent);
+@each $ColorMapName,$ColorMapValue in $ColorMap{
+  .clr#{$ColorMapName}{
+    color:$ColorMapValue;
+    &::selection{
+      background: $ColorMapValue;
+      color: #fff;
+    }
+  }
+  .bg#{$ColorMapName}{
+    background-color:$ColorMapValue;
+  }
+}
+.logMessage{
+  display: inline;
+  font-size: 1rem/1 monospace;
+  width: fit-content;
+  line-height: 1;
+  white-space: pre-wrap;
+  word-break: break-all;
+  &.noWordBreak{word-break: normal;}
+  &,*:not(.icon){font-family: 'Source Code Pro' !important;}
+  margin: 0;
+  padding: 0;
+}

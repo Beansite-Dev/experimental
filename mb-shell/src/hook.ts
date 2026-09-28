@@ -35,16 +35,14 @@ export const useShell=():[
         cd:(dirTree:string[],inputPath:string):void=>{
           let arrOfFileNames:string[]|{name:string;message:string;};
           try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
-          if(Array.isArray(arrOfFileNames))mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
+          if(Array.isArray(arrOfFileNames)){
+            mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
+            setLogs(x=>[...x.slice(0,-1),`c:/${arrOfFileNames.join("/")} > ${command}`]);
+          }
           else setLogs(x=>[...x,
             arrOfFileNames.name,
             arrOfFileNames.message,
           ]);
-          // ..
-          // (dir2)../dir1/dir3/file2.txt
-          // these should be converted to the first kind and
-          // passed as an array to the filesystem hook
-          // -> mods.enterDirectoryFromPath(newArrOfUuids);
         },
         ls:(dirTree:string[]):void=>{
           // just list directory contents
