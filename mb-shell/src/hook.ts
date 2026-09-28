@@ -42,26 +42,25 @@ export const useShell=():[
               {t:"nl"},
             ]);
           }
-          else setLogs(x=>[...x,
-            ...parseError(arrOfFileNames.name,
-            arrOfFileNames.message,),
-          ]);
+          else setLogs(x=>[...x,...parseError(
+            command,
+            arrOfFileNames.name,
+            arrOfFileNames.message,
+          ),]);
         },
         ls:(dirTree:string[]):void=>{
           // just list directory contents
           mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(dirTree));
           const freshScope=store.get(filesystemAtom);//fixes the issue of scope not updating in time
           setLogs(x=>[...x,
-            { t:"l", m:`contents of /${dirTree.join("/")}` },
+            {t:"l",m:`contents of /${dirTree.join("/")}`},{t:"nl"},
             ...(Object.keys(freshScope.data).map((key)=>{return[{
               t:"l",
               m:`  ${freshScope.data[key].name}${freshScope.data[key].metadata.typeof.directory?"/":`.${(freshScope.data[key]as mbfs.File).type}`} (${key})`
-            },{t:"nl"}]}).flat() as logs.LogType[]),
+            },{t:"nl"}]}).flat()as logs.LogType[]),
           ]);
         },
-        cls:():void=>{
-          setLogs([]);
-        },
+        cls:():void=>{setLogs([]);},
         touch:(dirTree:string[],fileName:string):void=>{
           const name=fileName.split(".")[0];
           const type=fileName.split(".")[1]||"txt";
@@ -101,7 +100,7 @@ export const useShell=():[
           try{
             mods.deleteFilesystemObject(dirTree,mods.getUuidsFromFileNames([...dirTree,trimmedFileName]).slice(-1)[0]);
           }catch(error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
-            setLogs(x=>[...x,...parseError(error.name,error.message)]);
+            setLogs(x=>[...x,...parseError(command,error.name,error.message)]);
           }
         },
         mkdir:(dirTree:string[],name:string):void=>{
@@ -135,10 +134,8 @@ export const useShell=():[
             }
           });
         },
-        whoami:(dirTree:string[]):void=>{
-          setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);
-        },
-        echo:(dirTree:string[], ...args:string[]):void=>{
+        whoami:():void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);},
+        echo:(_:string[],...args:string[]):void=>{
           const message=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
           setLogs(x=>[...x, { t:"l", m:message },{t:"nl"}]);
         }
@@ -153,7 +150,11 @@ export const useShell=():[
       setLogs(x=>[...x, { t:"l", m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}` },{t:"nl"}]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
       else setLogs(x=>[...x,
-        ...parseError("CommandNotFoundError",`command not found: ${parseCommand[0]}`),
+        ...parseError(
+          command,
+          "CommandNotFoundError",
+          `${parseCommand[0]} : the term '${parseCommand[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`
+        ),
       ]);
     };
   };

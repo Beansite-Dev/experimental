@@ -15,9 +15,13 @@ const parsePath=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
   }
   return inputPath.split("/");
 }
-export const parseError=(name:string,message:string):logs.LogType[]=>{
+export const parseError=(command:string,name:string,message:string):logs.LogType[]=>{
   return[
-
+    {t:"l",m:`${message}`,clr:"Red",bg:"Black"},{t:"nl"},
+    {t:"l",m:`At line:1 char:1`,clr:"Red",bg:"Black"},{t:"nl"},
+    {t:"l",m:`+ ${command}`,clr:"Red",bg:"Black"},{t:"nl"},
+    {t:"l",m:`+ ${"~".repeat(command.length)}`,clr:"Red",bg:"Black"},{t:"nl"},
+    {t:"l",m:`    + FullyQualifiedErrorId: ${name}`,clr:"Red",bg:"Black"},{t:"nl"},
   ];
 }
 export { parsePath };
