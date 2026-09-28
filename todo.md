@@ -34,13 +34,15 @@
     - the command should point to the function in lib via searching for strings in an object
 - Rework ls/dir to show file details (Size, Modified Date)
 - implement commands
+  - neofetch (in /Programs/neofetch.sh with data being a shell string)
   - cat
   - grep
   - rmdir
   - sudo
   - mv
-- implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
+- improve echo to have more versatility with new color options
 - ability to "ex" > file.txt 
+- implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 
 #### done
 - implemented commands
