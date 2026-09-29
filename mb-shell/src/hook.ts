@@ -34,6 +34,7 @@ export const useShell=():[
         cd:(dirTree:string[],inputPath:string):void=>{
           let arrOfFileNames:string[]|{name:string;message:string;};
           try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
+          console.log(arrOfFileNames);
           if(Array.isArray(arrOfFileNames)){
             mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
             setLogs(x=>[...x.slice(0,-2),
@@ -94,13 +95,15 @@ export const useShell=():[
             }
           });
         },
-        rm:(dirTree:string[],fileName:string):void=>{
-          const trimmedFileName:string=fileName.split(".")[0];
-          try{
-            mods.deleteFilesystemObject(dirTree,mods.getUuidsFromFileNames([...dirTree,trimmedFileName]).slice(-1)[0]);
-          }catch(error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
-            setLogs(x=>[...x,...parseError(command,error.name,error.message)]);
-          }
+        rm:(dirTree:string[],filePath:string):void=>{
+          
+          //!old rm, fileName => filePath now
+          // const trimmedFileName:string=fileName.split(".")[0];
+          // try{
+          //   mods.deleteFilesystemObject(dirTree,mods.getUuidsFromFileNames([...dirTree,trimmedFileName]).slice(-1)[0]);
+          // }catch(error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
+          //   setLogs(x=>[...x,...parseError(command,error.name,error.message)]);
+          // }
         },
         mkdir:(dirTree:string[],name:string):void=>{
           mods.createDirectory(dirTree,{

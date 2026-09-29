@@ -43,6 +43,7 @@
 - improve echo to have more versatility with new color options
 - ability to "ex" > file.txt 
 - implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
+- Bug found: cd does not work if scope is deeper than 1
 
 #### done
 - implemented commands

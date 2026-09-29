@@ -2,9 +2,10 @@ import { DirectoryNotFoundError } from "mb-fs2";
 const parsePath=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
   if(!inputPath||inputPath.length < 1)throw new DirectoryNotFoundError(`Invalid directory string passed to parser`);
   if(inputPath.startsWith("C:/")||inputPath.startsWith("c:/"))return[...inputPath.split("/")];
+  if(inputPath.startsWith("./"))return[...currentWorkingDirectory,...inputPath.split("/").slice(1)];
   if(inputPath.startsWith("~"))return["users","admin",...inputPath.split("/").slice(1)]; 
   if(inputPath.startsWith("..")){
-  const segments=inputPath.split("/").filter(s=>s.length>0);
+    const segments=inputPath.split("/").filter(s=>s.length>0);
     let cwd=[...currentWorkingDirectory];
     let i=0;
     for(;i<segments.length&&segments[i]==="..";i++){
@@ -13,7 +14,8 @@ const parsePath=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
     }
     return[...cwd,...segments.slice(i)];
   }
-  return inputPath.split("/");
+  if(inputPath.startsWith("/"))return[...inputPath.split("/")];
+  else return[...currentWorkingDirectory,...inputPath.split("/")];
 }
 export const parseError=(command:string,name:string,message:string):logs.LogType[]=>{
   return[
