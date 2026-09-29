@@ -1,7 +1,7 @@
 import { DirectoryNotFoundError } from "mb-fs2";
 const parsePath=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
   if(!inputPath||inputPath.length < 1)throw new DirectoryNotFoundError(`Invalid directory string passed to parser`);
-  else if(inputPath.startsWith("C:/")||inputPath.startsWith("c:/"))return[...inputPath.split("/")];
+  else if(inputPath.startsWith("C:/")||inputPath.startsWith("c:/"))return[...inputPath.slice(3).split("/")];
   else if(inputPath.startsWith("./"))return[...currentWorkingDirectory,...inputPath.split("/").slice(1)];
   else if(inputPath.startsWith("~"))return["users","admin",...inputPath.split("/").slice(1)]; 
   else if(inputPath.startsWith("..")){
