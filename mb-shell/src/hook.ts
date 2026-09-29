@@ -147,7 +147,7 @@ export const useShell=():[
         clear: functionMapBase.cls!,
         "cd..":(dirTree:string[])=>functionMapBase.cd?.(dirTree,".."),
       };
-      setLogs(x=>[...x, { t:"l", m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}` },{t:"nl"}]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      setLogs(x=>[...x, {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(functionMap[parseCommand[0]])functionMap[parseCommand[0]](dirTree,...parseCommand.slice(1));
       else setLogs(x=>[...x,
         ...parseError(
