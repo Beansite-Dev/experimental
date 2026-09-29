@@ -24,7 +24,7 @@ export const useShell=():[
     dirTree,
     mods,
   ]=useFileSystem();
-  const store=getDefaultStore();
+  // const store=getDefaultStore();//no longer needed
   //filesystem is persistent but scope is not. Perfect for this 
   const interpreter=(code:string)=>{
     const commands=code.split(/;|\r?\n/);
@@ -34,14 +34,18 @@ export const useShell=():[
         cd:(dirTree:string[],inputPath:string):void=>{
           let arrOfFileNames:string[]|{name:string;message:string;};
           try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
-          console.log(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
-          if(Array.isArray(arrOfFileNames)){
-            mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
+          console.warn("cd res: ",arrOfFileNames,mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
+          if(Array.isArray(arrOfFileNames)){try{
+            mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames));
             setLogs(x=>[...x.slice(0,-2),
               {t:"l",m:`c:/${arrOfFileNames.join("/")} > ${command}`},
               {t:"nl"},
             ]);
-          }
+          }catch(e){setLogs(x=>[...x,...parseError(
+            command,
+            (e as Error).name,
+            (e as Error).message,
+          ),]);}}
           else setLogs(x=>[...x,...parseError(
             command,
             arrOfFileNames.name,
@@ -143,6 +147,7 @@ export const useShell=():[
       // aliases go here. You can take function from the base function map and just set them to each other
       const functionMap:Record<string,(dirTree:string[],...args:string[])=>void>={
         ...functionMapBase,
+        "":()=>{},
         dir: functionMapBase.ls!,
         clear: functionMapBase.cls!,
         "cd..":(dirTree:string[])=>functionMapBase.cd?.(dirTree,".."),
