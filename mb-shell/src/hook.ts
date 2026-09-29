@@ -34,7 +34,7 @@ export const useShell=():[
         cd:(dirTree:string[],inputPath:string):void=>{
           let arrOfFileNames:string[]|{name:string;message:string;};
           try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
-          console.log(arrOfFileNames);
+          console.log(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
           if(Array.isArray(arrOfFileNames)){
             mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
             setLogs(x=>[...x.slice(0,-2),
@@ -50,13 +50,11 @@ export const useShell=():[
         },
         ls:(dirTree:string[]):void=>{
           // just list directory contents
-          mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(dirTree));
-          const freshScope=store.get(filesystemAtom);//fixes the issue of scope not updating in time
           setLogs(x=>[...x,
             {t:"l",m:`contents of /${dirTree.join("/")}`},{t:"nl"},
-            ...(Object.keys(freshScope.data).map((key)=>{return[{
+            ...(Object.keys(scope.data).map((key)=>{return[{
               t:"l",
-              m:`  ${freshScope.data[key].name}${freshScope.data[key].metadata.typeof.directory?"/":`.${(freshScope.data[key]as mbfs.File).type}`} (${key})`
+              m:`  ${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"/":`.${(scope.data[key]as mbfs.File).type}`} (${key})`
             },{t:"nl"}]}).flat()as logs.LogType[]),
           ]);
         },
