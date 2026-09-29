@@ -24,7 +24,7 @@ export const useFileSystem=():[
   mbfs.Directory,//currnet scope
   string[],//tree of directory uuids
   modTypes,//functions for mod 
-  PrimitiveAtom<mbfs.Directory>,//atom for filesystem
+  // PrimitiveAtom<mbfs.Directory>,//atom for filesystem
 ]=>{
   const[fs,setFs]=useAtom(fsAtom);
   const[dirTree,setDirTree]=useState<string[]>([]);
@@ -165,5 +165,5 @@ export const useFileSystem=():[
       setScope(dirTree.reduce((directory,uuid)=>directory.data[uuid] as mbfs.Directory,nextFs));
     },
   };
-  return[fs,scope,dirTree,mods,fsAtom];
+  return[fs,scope,dirTree,mods];
 }

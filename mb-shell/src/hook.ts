@@ -1,7 +1,7 @@
 import { useAtom, useStore } from "jotai/react";
 import { logAtom } from "./store";
 import { ReactNode } from "react";
-import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem } from "mb-fs2";
+import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem, fsAtom as filesystemAtom } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
 import { parseError, parsePath } from "./lib";
 // idea is, a person would wrap their function in the provider
@@ -23,7 +23,6 @@ export const useShell=():[
     scope,
     dirTree,
     mods,
-    filesystemAtom
   ]=useFileSystem();
   const store=getDefaultStore();
   //filesystem is persistent but scope is not. Perfect for this 
