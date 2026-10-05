@@ -23,8 +23,8 @@ export const functionMapBase:{
       ]);
     }catch(e){setLogs(x=>[...x,...parseError(
       command,
-      (e as Error).name,
-      (e as Error).message,
+      (e as {name:string}).name,
+      (e as {message:string}).message,
     ),]);}}
     else setLogs(x=>[...x,...parseError(
       command,
