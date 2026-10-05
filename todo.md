@@ -44,7 +44,7 @@
 - ability to "ex" > file.txt 
 - implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 - Bug found: directories created in a scope deeper than root are unusable. They cannot be deleted (exp and cmd), entered (cmd), but can be renamed (exp)
-  - The only cd that works into the second level is when running `cd Programs/test` (with no `.`, `/`, or anything else) 
+  - The only cd that works into the second level is when running `cd Programs/test` or `c:/Programs/test` (with no `.`, `/`, or anything else) 
 
 #### done
 - implemented commands
