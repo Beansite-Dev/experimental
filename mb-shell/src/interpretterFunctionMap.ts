@@ -9,11 +9,11 @@ export const functionMapBase:{
     setLogs:((update: SetStateAction<logs.LogType[]>)=>void),
     dirTree:string[],
     ...args:string[]
-  )=>void)|void
+  )=>void)|void;
 }={
-  cd:(command,_scope,mods,setLogs,dirTree:string[],inputPath:string):void=>{
+  cd:(command,_scope,mods,setLogs,dirTree:string[],...inputPath:string[]):void=>{
     let arrOfFileNames:string[]|{name:string;message:string;};
-    try{arrOfFileNames=parsePath(inputPath,dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
+    try{arrOfFileNames=parsePath(inputPath.join("/"),dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
     console.warn("cd res: ",arrOfFileNames,mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
     if(Array.isArray(arrOfFileNames)){try{
       mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames));
