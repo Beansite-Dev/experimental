@@ -3,7 +3,7 @@ import { dir, file, fsAtom, type mbfs } from './atom.js';
 import { useState } from "react";
 import { DirectoryNotFoundError, FileNotFoundError, FilesystemObjectTypeError } from './exceptions.js';
 import { v4 as uuidv4 } from 'uuid';
-type modTypes={
+export type modTypes={
   //directory movement
   enterDirectoryFromScope:(uuid:string)=>void;
   enterParentDirectory:()=>void;
