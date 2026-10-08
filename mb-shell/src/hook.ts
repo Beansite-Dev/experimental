@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem, fsAtom as filesystemAtom } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
 import { parseError, parsePath } from "./lib";
-import { functionMap } from "./interpretterFunctionMap";
+import { functionMap } from "./interpreterFunctionMap";
 // idea is, a person would wrap their function in the provider
 // and then use the useShell hook. Then the user can run the
 // interpreter function and it will interpret their shell

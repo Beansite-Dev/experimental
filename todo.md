@@ -46,6 +46,7 @@
 - Bug found: directories created in a scope deeper than root are unusable. They cannot be deleted (exp and cmd), entered (cmd), but can be renamed (exp)
   - The only cd that works into the second level is when running `cd Programs/test` or `c:/Programs/test` (with no `.`, `/`, or anything else) 
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`)
+- In explorer (where the only delete function tester exists), it fails to delete files past root because it wont nest
 
 #### done
 - implemented commands

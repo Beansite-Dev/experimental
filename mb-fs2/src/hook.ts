@@ -133,12 +133,15 @@ export const useFileSystem=():[
     },
     deleteFilesystemObject:(path:string[],uuidOfFile:string):void=>{
       // replace with deleteFile and deleteDirectory and make deleteFile account for types -Zach
-      const remove=(currentDirectory:mbfs.Directory,i:number):mbfs.Directory=>{
-        const node=currentDirectory.data[uuidOfFile];
-        const uuidOfStep=path[i];
-        if(uuidOfStep===undefined)return{...currentDirectory,data:Object.fromEntries(Object.entries(currentDirectory.data).filter(([k])=>k!==uuidOfFile))};
-        if(!node)throw new FileNotFoundError(`No present entry with uuid ${uuidOfFile} in "${currentDirectory.name}"`);
-        return{...currentDirectory,data:{...currentDirectory.data,[uuidOfStep]:remove(currentDirectory.data[uuidOfStep] as mbfs.Directory,i+1)}};
+      const remove=(dir:mbfs.Directory,i:number):mbfs.Directory=>{
+        const step=path[i];
+        if(step===undefined){
+          if(!dir.data[uuidOfFile])throw new FileNotFoundError(`No present entry with uuid ${uuidOfFile} in "${dir.name}"`);
+          return{...dir,data:Object.fromEntries(Object.entries(dir.data).filter(([k])=>k!==uuidOfFile))};
+        }
+        const child=dir.data[step];
+        if(!child)throw new FileNotFoundError(`No directory with uuid ${step} in "${dir.name}"`);
+        return{...dir,data:{...dir.data,[step]:remove(child as mbfs.Directory,i+1)}};
       };
       const next=remove(fs,0);
       setFs(next);
