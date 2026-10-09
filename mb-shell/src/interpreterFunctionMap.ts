@@ -6,7 +6,7 @@ export const functionMapBase:{
     command:string,
     scope:mbfs.Directory,
     mods:modTypes,
-    setLogs:((update: SetStateAction<logs.LogType[]>)=>void),
+    setLogs:((update:SetStateAction<logs.LogType[]>)=>void),
     dirTree:string[],
     ...args:string[]
   )=>void)|void;
