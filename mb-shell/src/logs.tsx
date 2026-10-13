@@ -35,6 +35,9 @@ declare global{
     interface LogMessage extends LogMessageBase {
       t:"l";
       m:string;
+      bold?:boolean;
+      italic?:boolean;
+      underline?:boolean;
     }
     type LogType=logs.LogMessage|logs.Icon|logs.NewLine;
   }
@@ -46,6 +49,9 @@ export const Log=({logObject}:{
     case "l":return<span 
       className={`
         logMessage 
+        ${logObject.bold?"bold":""}
+        ${logObject.italic?"italic":""}
+        ${logObject.underline?"underline":""}
         bg${logObject.bg||"Transparent"} 
         clr${logObject.clr||"White"}
       `.replaceAll("\n"," ")}>{logObject.m}</span>;

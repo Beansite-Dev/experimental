@@ -37,13 +37,20 @@ export const functionMapBase:{
     }
   },
   ls:(_command,scope,_mods,setLogs,dirTree:string[]):void=>{
-    // just list directory contents
+    // new ls post rework
+    const minObjLen:number=Object.keys(scope.data).map(x=>scope.data[x].name).sort((a,b)=>{return b.length-a.length;})[0].length+2;
     setLogs(x=>[...x,
-      {t:"l",m:`contents of /${dirTree.join("/")}`},{t:"nl"},
-      ...(Object.keys(scope.data).map((key)=>{return[{
+      ...Object.keys(scope.data).map((key):logs.LogType=>({
         t:"l",
-        m:`  ${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"/":`.${(scope.data[key]as mbfs.File).type}`} (${key})`
-      },{t:"nl"}]}).flat()as logs.LogType[]),
+        ...scope.data[key].metadata.typeof.directory
+          ?{clr:"Cyan",bold:true}
+          :scope.data[key].metadata.typeof.executable
+          ?{clr:"BrightGreen",bold:true}
+          :{},
+        m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`.padEnd(minObjLen),
+      })),
+      {t:"nl"},
+      {t:"nl"},
     ]);
   },
   cls:(_command,_scope,_mods,setLogs,):void=>{setLogs([]);},
