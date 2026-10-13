@@ -1,4 +1,5 @@
 import { DirectoryNotFoundError } from "mb-fs2";
+//temp, likely will not reimplement since its been nothing but buggy since iplementation
 const parsePathSub=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
   if(!inputPath||inputPath.length<1||!inputPath.split("/"))throw new DirectoryNotFoundError(`Invalid directory string passed to parser`);
   else if(inputPath.startsWith("C:/")||inputPath.startsWith("c:/"))return[...inputPath.slice(3).split("/")];

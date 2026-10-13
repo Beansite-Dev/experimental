@@ -1,4 +1,4 @@
-import { mbfs, modTypes } from "mb-fs2";
+import { DirectoryNotFoundError, mbfs, modTypes } from "mb-fs2";
 import { parseError, parsePath } from "./lib";
 import { SetStateAction } from "jotai/vanilla";
 export const functionMapBase:{
@@ -11,26 +11,30 @@ export const functionMapBase:{
     ...args:string[]
   )=>void)|void;
 }={
-  cd:(command,_scope,mods,setLogs,dirTree:string[],...inputPath:string[]):void=>{
-    let arrOfFileNames:string[]|{name:string;message:string;};
-    try{arrOfFileNames=parsePath(inputPath.join("/"),dirTree);}catch(e){arrOfFileNames=e as {name:string;message:string;}}
-    console.warn("cd res: ",arrOfFileNames,mods.getUuidsFromDirectoryNames(arrOfFileNames as string[]));
-    if(Array.isArray(arrOfFileNames)){try{
-      mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(arrOfFileNames));
+  cd:(command,_scope,mods,setLogs,dirTree:string[],inputPath:string):void=>{
+    //f=arrOfFileNames (shortened cuz my keyboard is ass)
+    let f:string[]=[];
+    let parsed:string[];
+    let debug:boolean=true;
+    try{//checker step (for both syntax and validity)
+      if(debug)console.log("running cd path parser");
+      f=parsePath(inputPath,mods.getNamesFromUuids(dirTree));
+      parsed=mods.getUuidsFromDirectoryNames(f);
+      mods.enterDirectoryFromPath(parsed);
+      if(debug)console.warn("=> cd res: ",f,parsed);
+      mods.enterDirectoryFromPath(parsed);
       setLogs(x=>[...x.slice(0,-2),
-        {t:"l",m:`c:/${arrOfFileNames.join("/")} > ${command}`},
+        {t:"l",m:`c:/${f.join("/")} > ${command}`},
         {t:"nl"},
       ]);
-    }catch(e){setLogs(x=>[...x,...parseError(
-      command,
-      (e as {name:string}).name,
-      (e as {message:string}).message,
-    ),]);}}
-    else setLogs(x=>[...x,...parseError(
-      command,
-      arrOfFileNames.name,
-      arrOfFileNames.message,
-    ),]);
+    }catch(e){
+      if(debug)console.error("=> cd failed",e);
+      setLogs(x=>[...x,...parseError(
+        command,
+        (e as {name:string}).name,
+        (e as {message:string}).message,
+      ),]);
+    }
   },
   ls:(_command,scope,_mods,setLogs,dirTree:string[]):void=>{
     // just list directory contents

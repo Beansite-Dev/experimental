@@ -16,7 +16,7 @@ const Browser=({scope,fsMod,directoryTree}:{
       <button onClick={()=>{fsMod.enterParentDirectory();}}>^parent dir</button>
       <button onClick={()=>{
         fsMod.createFile(directoryTree,{
-          name:"New File",
+          name:"NewFile",
           type:"txt",
           data:"new file",
           metadata:{
@@ -48,7 +48,7 @@ const Browser=({scope,fsMod,directoryTree}:{
       }}>+file</button>
       <button onClick={()=>{
         fsMod.createDirectory(directoryTree,{
-          name:"New Dir",
+          name:"NewDir",
           data:{},
           metadata:{
             access:{
