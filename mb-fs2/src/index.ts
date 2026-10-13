@@ -1,3 +1,3 @@
 export * from './exceptions.js';
-export { useFileSystem } from './hook.js';
+export * from './hook.js';
 export * from'./atom.js';
