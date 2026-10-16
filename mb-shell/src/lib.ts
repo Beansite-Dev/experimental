@@ -31,3 +31,20 @@ export const parseError=(command:string,name:string,message:string):logs.LogType
     {t:"l",m:`    + FullyQualifiedErrorId: ${name}`,clr:"Red",bg:"Black"},{t:"nl"},
   ];
 };
+export const getMinLength=(map:string[],pad:number):number=>{
+  return map.sort((a:string,b:string)=>{return b.length-a.length;})[0].length+pad;
+};
+export const clamp=(val:number,min:number,max:number)=>Math.min(Math.max(val,min),max);
+export const lslFormatDateTime=(date:Date|undefined):string=>{
+  if(!date)return"";
+  const options:Intl.DateTimeFormatOptions={
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  };
+  return new Intl.DateTimeFormat('en-US',options)
+    .format(date)
+    .replace(',','');
+}

@@ -1,5 +1,5 @@
 import { DirectoryNotFoundError, mbfs, modTypes } from "mb-fs2";
-import { parseError, parsePath } from "./lib";
+import { clamp, getMinLength, lslFormatDateTime, parseError, parsePath } from "./lib";
 import { SetStateAction } from "jotai/vanilla";
 export const functionMapBase:{
   [key:string]:((
@@ -34,23 +34,50 @@ export const functionMapBase:{
         (e as {name:string}).name,
         (e as {message:string}).message,
       ),]);
-    }
+    };
   },
-  ls:(_command,scope,_mods,setLogs,dirTree:string[]):void=>{
+  ls:(_command,scope,_mods,setLogs,dirTree:string[],...args:string[]):void=>{
     // new ls post rework
-    const minObjLen:number=Object.keys(scope.data).map(x=>scope.data[x].name).sort((a,b)=>{return b.length-a.length;})[0].length+2;
-    setLogs(x=>[...x,
+    const minObjLen:number=getMinLength(Object.keys(scope.data).map(x=>`${scope.data[x].name}${!scope.data[x].metadata.typeof.directory?"."+(scope.data[x] as mbfs.File).type:""}`),1);
+    const lMinNameLen:number=getMinLength(Object.keys(scope.data).map(x=>scope.data[x].metadata.originalCreator),1);
+    if(args.length==0)setLogs(x=>[...x,
       ...Object.keys(scope.data).map((key):logs.LogType=>({
         t:"l",
         ...scope.data[key].metadata.typeof.directory
-          ?{clr:"Cyan",bold:true}
+            ?{clr:"Cyan",bold:true}
           :scope.data[key].metadata.typeof.executable
-          ?{clr:"BrightGreen",bold:true}
+            ?{clr:"BrightGreen",bold:true}
           :{},
         m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`.padEnd(minObjLen),
       })),
-      {t:"nl"},
-      {t:"nl"},
+      {t:"nl"},{t:"nl"},
+    ]);
+    if(args.includes("-l"))setLogs(x=>[...x,
+      ...Object.keys(scope.data).map((key):logs.LogType[]=>([
+        {t:"l",
+          m:`${scope.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-x. `,
+        },{t:"l",
+          m:`1 `,
+        },{t:"l",
+          m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),
+        },{t:"l",
+          m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),
+        },{t:"l",
+          m:`${String(clamp(JSON.stringify(scope.data[key]).length,0,4096))}`.padEnd(5),
+        },{t:"l",
+          m:lslFormatDateTime(scope.data[key].metadata.date.modified).padEnd(13),
+        },{
+        t:"l",
+          ...scope.data[key].metadata.typeof.directory
+              ?{clr:"Cyan",bold:true}
+            :scope.data[key].metadata.typeof.executable
+              ?{clr:"BrightGreen",bold:true}
+            :{},
+          m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`,
+        },
+        {t:"nl"}
+      ])).flat(),
+      {t:"nl"}
     ]);
   },
   cls:(_command,_scope,_mods,setLogs,):void=>{setLogs([]);},
@@ -141,5 +168,6 @@ export const functionMap:Record<string,(command:string, scope:mbfs.Directory, mo
   "":()=>{},
   dir: functionMapBase.ls!,
   clear: functionMapBase.cls!,
+  "ll":(command,scope,mods,setLogs,dirTree:string[])=>functionMapBase.ls?.(command,scope,mods,setLogs,dirTree,"-l"),
   "cd..":(command,scope,mods,setLogs,dirTree:string[])=>functionMapBase.cd?.(command,scope,mods,setLogs,dirTree,".."),
 };
