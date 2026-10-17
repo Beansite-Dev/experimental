@@ -40,9 +40,10 @@
   - sudo
   - mv
 - improve echo to have more versatility with new color options
-- ability to "ex" > file.txt 
+- ability to "ex" > file.txt (redirect operator)
 - implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
-- Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`)
+- Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
+- Add to mkdir to allow it to create directories from anywhere
 
 #### done
 - implemented commands

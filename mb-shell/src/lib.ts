@@ -32,6 +32,7 @@ export const parseError=(command:string,name:string,message:string):logs.LogType
   ];
 };
 export const getMinLength=(map:string[],pad:number):number=>{
+  if(map.length==0)return 0;
   return map.sort((a:string,b:string)=>{return b.length-a.length;})[0].length+pad;
 };
 export const clamp=(val:number,min:number,max:number)=>Math.min(Math.max(val,min),max);

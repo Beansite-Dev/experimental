@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem, fsAtom as filesystemAtom } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
 import { parseError, parsePath } from "./lib";
-import { functionMap } from "./interpreterFunctionMap";
+import { functionMap, runShellComand } from "./interpreterFunctionMap";
 // idea is, a person would wrap their function in the provider
 // and then use the useShell hook. Then the user can run the
 // interpreter function and it will interpret their shell
@@ -30,17 +30,32 @@ export const useShell=():[
   const interpreter=(code:string)=>{
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
-      const parseCommand=command.trim().split(" ");
       setLogs(x=>[...x, {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
-      if(functionMap[parseCommand[0]])
-        functionMap[parseCommand[0]](command,scope,mods,setLogs,dirTree,...parseCommand.slice(1));
-      else setLogs(x=>[...x,
-        ...parseError(
+      // if(parsedCommand.includes(">")){
+      //   //redirector operation
+      //   const iOfRedirOp=parsedCommand.indexOf(">");
+      //   const parsedCommandAfterRedirOp:string[]=parsedCommand.slice(0,iOfRedirOp);
+      //   const output:string=parsedCommand[iOfRedirOp+1];
+      //   if(output&&parsedCommandAfterRedirOp){
+      //     const currentLogIndex:number=logs.length-1;
+      //
+      //   }
+      // }
+      runShellComand(
+        command,
+        scope,
+        mods,
+        setLogs,
+        dirTree,
+      ).then((r)=>{
+        console.log("run res > ",command,">",r);
+      }).catch((e)=>{
+        setLogs(x=>[...x,...parseError(
           command,
-          "CommandNotFoundError",
-          `${parseCommand[0]} : the term '${parseCommand[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`
-        ),
-      ]);
+          (e as {name:string}).name,
+          (e as {message:string}).message,
+        ),]);
+      });
     };
   };
   return[
