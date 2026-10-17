@@ -1,6 +1,7 @@
 import { DirectoryNotFoundError, mbfs, modTypes } from "mb-fs2";
 import { clamp, getMinLength, lslFormatDateTime, parseError, parsePath } from "./lib";
-import { SetStateAction } from "jotai/vanilla";
+import { getDefaultStore, SetStateAction } from "jotai/vanilla";
+import { logAtom } from "./store";
 export const functionMapBase:{
   [key:string]:((
     command:string,
@@ -181,31 +182,68 @@ export const functionMap:Record<string,(
   "ll":(command,scope,mods,setLogs,promise,dirTree:string[])=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,"-l"),
   "cd..":(command,scope,mods,setLogs,promise,dirTree:string[])=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,".."),
 };
-export const runShellComand=(
+export const runShellCommand=(
   command:string,
-  // command:keyof typeof functionMap,
   scope:mbfs.Directory,
   mods:modTypes,
-  setLogs:((update: SetStateAction<logs.LogType[]>)=>void),
-  dirTree:string[]
-):Promise<number|{name:string,message:string}>=>{
-  const parsedCommand:any[]=command.trim().split(" ");
-  return new Promise((resolve,reject)=>{
-    if(functionMap[parsedCommand[0]])functionMap[parsedCommand[0]](
-      command,
-      scope,
-      mods,
-      setLogs,
-      [resolve,reject],
-      dirTree,
-      ...parsedCommand.slice(1)
-    );
-    else setLogs(x=>[...x,
-      ...parseError(
-        command,
-        "CommandNotFoundError",
-        `${parsedCommand[0]} : the term '${parsedCommand[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`
-      ),
-    ]);
+  logs:logs.LogType[],
+  setLogs:(update:SetStateAction<logs.LogType[]>)=>void,
+  dirTree:string[],
+):Promise<void>=>{
+  const parsedCommand:string[]=command.trim().split(/\s+/);
+  const iOfRedirOp:number=parsedCommand.indexOf(">");
+  const args:string[]=iOfRedirOp>0?parsedCommand.slice(0,iOfRedirOp):parsedCommand;
+  let outputPath:string|undefined;
+  const currentIndexInLogs=logs.length-1;
+  return new Promise<unknown>((resolve,reject)=>{
+    if(iOfRedirOp===0)return reject({
+      name:"InvalidRedirectOperatorUsage",
+      message:"blank commands cannot be passed to redirect operators",
+    });
+    if(iOfRedirOp>0){
+      outputPath=parsedCommand[iOfRedirOp+1];
+      if(!outputPath)return reject({
+        name:"InvalidRedirectOperatorUsage",
+        message:"redirect operator cannot point to nothing",
+      });
+    }
+    const fn=Object.hasOwn(functionMap,args[0])?functionMap[args[0]]:undefined;
+    if(!fn)return reject({
+      name:"CommandNotFoundError",
+      message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
+    });
+    fn(command,scope,mods,setLogs,[resolve,reject],dirTree,...args.slice(1));
+  }).then(r=>{
+    if(!outputPath)return;
+    const slash=outputPath.lastIndexOf("/");
+    const dir=slash===0?"/":slash>0?outputPath.slice(0,slash):"";
+    const file=outputPath.slice(slash+1);
+    const dot=file.lastIndexOf(".");
+    const now=new Date();
+    const cwdNames=mods.getNamesFromUuids(dirTree);
+    const dirPath=dir===""||dir==="."?cwdNames:parsePath(dir,cwdNames);
+    mods.createFile(dirPath,{
+      name:dot>0?file.slice(0,dot):file,
+      type:dot>0?file.slice(dot+1):"",
+      /*
+      
+      IMPLEMENT FEATURE TO HAVE LOGS ALSO ADD TO PROMISE SO IT GES RESOLVED AS R. R WILL PREFERABLY
+      BE OF TYPE string[]
+      
+      */
+      data:"feature not implemented yyet",
+      metadata:{
+        access:{
+          read:{administrators:true,users:true,guests:false,},
+          write:{administrators:true,users:false,guests:false,},
+        },
+        date:{created:now,modified:now,accessed:now,},
+        originalCreator:"administrator",
+        typeof:{system:false,directory:false,executable:false,},
+      },
+    });
+  }).catch(e=>{
+    const err=e as {name:string;message:string};
+    setLogs(x=>[...x,...parseError(command,err.name,err.message),]);
   });
 }

@@ -44,6 +44,7 @@
 - implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
 - Add to mkdir to allow it to create directories from anywhere
+- IMPLEMENT FEATURE TO HAVE LOGS ALSO ADD TO PROMISE SO IT GES RESOLVED AS R. R WILL PREFERABLY BE OF TYPE string[]
 
 #### done
 - implemented commands
