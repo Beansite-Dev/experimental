@@ -32,7 +32,6 @@
 - I want there to also be an interpreted shell system
   - every line in beanshell code should check if the command exists in bin
     - the command should point to the function in lib via searching for strings in an object
-- Rework ls/dir to show file details (Size, Modified Date)
 - implement commands
   - neofetch (in /Programs/neofetch.sh with data being a shell string)
   - cat
@@ -44,7 +43,6 @@
 - ability to "ex" > file.txt 
 - implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`)
-- In explorer (where the only delete function tester exists), it fails to delete files past root because it wont nest
 
 #### done
 - implemented commands
@@ -54,8 +52,10 @@
   - mkdir
   - echo
   - whoami
+- Rework ls/dir to show file details (Size, Modified Date)
 - add a text color interpreter to allow results from the shell logs to return as full color
   - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling.
+- In explorer (where the only delete function tester exists), it fails to delete files past root because it wont nest
 
 ## mb-win2
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
