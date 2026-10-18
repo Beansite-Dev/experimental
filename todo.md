@@ -40,11 +40,9 @@
   - sudo
   - mv
 - improve echo to have more versatility with new color options
-- ability to "ex" > file.txt (redirect operator)
 - implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
 - Add to mkdir to allow it to create directories from anywhere
-- IMPLEMENT FEATURE TO HAVE LOGS ALSO ADD TO PROMISE SO IT GES RESOLVED AS R. R WILL PREFERABLY BE OF TYPE string[]
 
 #### done
 - implemented commands
@@ -58,6 +56,8 @@
 - add a text color interpreter to allow results from the shell logs to return as full color
   - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling.
 - In explorer (where the only delete function tester exists), it fails to delete files past root because it wont nest
+- IMPLEMENT FEATURE TO HAVE LOGS ALSO ADD TO PROMISE SO IT GES RESOLVED AS R. R WILL PREFERABLY BE OF TYPE string[]
+- ability to "ex" > file.txt (redirect operator)
 
 ## mb-win2
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it

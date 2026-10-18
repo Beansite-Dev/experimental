@@ -194,7 +194,18 @@ export const runShellCommand=(
   const iOfRedirOp:number=parsedCommand.indexOf(">");
   const args:string[]=iOfRedirOp>0?parsedCommand.slice(0,iOfRedirOp):parsedCommand;
   let outputPath:string|undefined;
-  const currentIndexInLogs=logs.length-1;
+  const captured:string[]=[];
+  let mirror:logs.LogType[]=logs;
+  let line:string="";
+  const setLogsWithLogger=(update:SetStateAction<logs.LogType[]>):void=>{
+    const next=typeof update==="function"?update(mirror):update;
+    for(const entry of next.slice(mirror.length)){
+      if(entry.t==="nl"){captured.push(line);line="";}
+      else if("m" in entry)line+=entry.m??"";
+    };
+    mirror=next;
+    setLogs(update);
+  };
   return new Promise<unknown>((resolve,reject)=>{
     if(iOfRedirOp===0)return reject({
       name:"InvalidRedirectOperatorUsage",
@@ -212,9 +223,10 @@ export const runShellCommand=(
       name:"CommandNotFoundError",
       message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
     });
-    fn(command,scope,mods,setLogs,[resolve,reject],dirTree,...args.slice(1));
+    fn(command,scope,mods,setLogsWithLogger,[resolve,reject],dirTree,...args.slice(1));
   }).then(r=>{
     if(!outputPath)return;
+    if(line)captured.push(line);
     const slash=outputPath.lastIndexOf("/");
     const dir=slash===0?"/":slash>0?outputPath.slice(0,slash):"";
     const file=outputPath.slice(slash+1);
@@ -225,13 +237,7 @@ export const runShellCommand=(
     mods.createFile(dirPath,{
       name:dot>0?file.slice(0,dot):file,
       type:dot>0?file.slice(dot+1):"",
-      /*
-      
-      IMPLEMENT FEATURE TO HAVE LOGS ALSO ADD TO PROMISE SO IT GES RESOLVED AS R. R WILL PREFERABLY
-      BE OF TYPE string[]
-      
-      */
-      data:"feature not implemented yyet",
+      data:captured.join("\n"),
       metadata:{
         access:{
           read:{administrators:true,users:true,guests:false,},
@@ -246,4 +252,4 @@ export const runShellCommand=(
     const err=e as {name:string;message:string};
     setLogs(x=>[...x,...parseError(command,err.name,err.message),]);
   });
-}
+};
