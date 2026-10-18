@@ -55,12 +55,12 @@ export const fsAtom=atom<mbfs.Directory>({
   name:"root",
   data:{
     [uuidv4()]:{
-      name:"Programs",
+      name:"bin",
       data:{
         [uuidv4()]:{
-          name:"programs",
-          type:"txt",
-          data:"programs will go here",
+          name:"neofetch",
+          type:"bat",
+          data:`echo hi;`,
           metadata:{
             access:{
               read:{
@@ -79,7 +79,7 @@ export const fsAtom=atom<mbfs.Directory>({
               modified:new Date(),
               accessed:new Date(),
             },
-            originalCreator:"administrator",
+            originalCreator:"root",
             typeof:{
               system:false,
               directory:false,

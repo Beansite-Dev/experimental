@@ -13,6 +13,7 @@ export type modTypes={
   getUuidsFromDirectoryNames:(names:string[])=>string[];
   getUuidsFromFileNames:(names:string[])=>string[];
   getNamesFromUuids:(uuids:string[])=>string[];
+  getFileSystem:()=>mbfs.Directory;
   //modifiers
   createFile:(path:string[],fileData:mbfs.File)=>void;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
@@ -100,6 +101,8 @@ export const useFileSystem=():[
       }
       return names;
     },
+    //js incase only mods is provided
+    getFileSystem:():mbfs.Directory=>fs,
     createFile:(path:string[],fileData:mbfs.File):void=>{
       const parsed=file.parse(fileData);
       const uuidOfNewFile=uuidv4();
