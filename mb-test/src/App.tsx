@@ -136,7 +136,7 @@ const Shell=({logs,setLogs,interpreter}:{
     if(e.key==="Enter"&&!e.shiftKey){
       e.preventDefault();
       e.stopPropagation();
-      try{interpreter(e.currentTarget.value);}catch{}
+      try{interpreter(e.currentTarget.value,true);}catch{}
       e.currentTarget.value="";
     }
   }}/></>;

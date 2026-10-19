@@ -191,6 +191,7 @@ export const runShellCommand=(
   setLogs:(update:SetStateAction<logs.LogType[]>)=>void,
   dirTree:string[],
   interpreter:ReturnType<typeof useShell>[2],
+  echo:boolean,
   // sandboxedShell_mods:ReturnType<typeof useShell>[6],
 ):Promise<void>=>{
   const parsedCommand:string[]=command.trim().split(/\s+/);
@@ -245,7 +246,7 @@ export const runShellCommand=(
         // sandboxedShell_mods.enterDirectoryFromPath(dirTree);
         // if(["bat","sh"].includes(binCommandPointer.type))sandboxedShell_interpreter(String(binCommandPointer.data));
         if(["bat","sh"].includes(binCommandPointer.type))
-          interpreter(String(binCommandPointer.data))
+          interpreter(String(binCommandPointer.data),false)
         return resolve(0);
       }else if(Array.isArray(parsedPath)){
         const pathOfInput:string[]=parsedPath.slice(0,-1);
@@ -262,7 +263,7 @@ export const runShellCommand=(
           console.log(`found pointer for command ${possibleFileName}||${filePointer.name} in relatively in ${pathOfInput}`);
           //running file goes here
           if(["bat","sh"].includes((filePointer as mbfs.File).type))
-            interpreter(String(filePointer.data))
+            interpreter(String(filePointer.data),false);
           return resolve(0);
         }else return reject({
           name:"CommandNotFoundError",

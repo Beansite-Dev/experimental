@@ -12,7 +12,7 @@ import { functionMap, runShellCommand } from "./interpreterFunctionMap";
 export const useShell=():[
   logs.LogType[],//logs
   ((update: SetStateAction<logs.LogType[]>)=>void),//logs setter
-  (code:string)=>void,//interpreter
+  (code:string,echo:boolean)=>void,//interpreter
   ReturnType<typeof useFileSystem>[0],//filesystem
   ReturnType<typeof useFileSystem>[1],//scope
   ReturnType<typeof useFileSystem>[2],//dirTree (in uuids)
@@ -27,7 +27,7 @@ export const useShell=():[
   ]=useFileSystem();
   // const store=getDefaultStore();//no longer needed
   //filesystem is persistent but scope is not. Perfect for this 
-  const interpreter=(code:string)=>{
+  const interpreter=(code:string,echo:boolean)=>{
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
       setLogs(x=>[...x, {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
@@ -38,7 +38,8 @@ export const useShell=():[
         logs,
         setLogs,
         dirTree,
-        interpreter
+        interpreter,
+        echo
       );
     };
   };
