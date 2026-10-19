@@ -41,7 +41,49 @@ declare global{
     }
     type LogType=logs.LogMessage|logs.Icon|logs.NewLine;
   }
-}
+};
+const colorMap:Record<logs.Color,true>={
+  Black:true,BrightBlack:true,Gray:true,DarkGray:true,BrightGray:true,
+  White:true,BrightWhite:true,Blue:true,DarkBlue:true,BrightBlue:true,
+  Green:true,DarkGreen:true,BrightGreen:true,Cyan:true,DarkCyan:true,BrightCyan:true,
+  Red:true,DarkRed:true,BrightRed:true,Orange:true,DarkOrange:true,BrightOrange:true,
+  Magenta:true,DarkMagenta:true,BrightMagenta:true,Yellow:true,DarkYellow:true,BrightYellow:true,
+  Transparent:true,
+};
+const colors=Object.keys(colorMap) as logs.Color[];
+type Style={clr?:logs.Color,bg?:logs.Color,bold?:boolean,italic?:boolean,underline?:boolean};
+const tags:{name:string,style:Style}[]=[
+  ...colors.map(c=>({name:c,style:{clr:c}})),
+  ...colors.map(c=>({name:`bg${c}`,style:{bg:c}})),
+  {name:"Bold",style:{bold:true}},
+  {name:"Italic",style:{italic:true}},
+  {name:"Underline",style:{underline:true}},
+].sort((a,b)=>b.name.length-a.name.length);//longest first so prefixes can't shadow each other
+export const parseLog=(src:string):logs.LogType[]=>{
+  const out:logs.LogType[]=[];
+  const stack:Style[]=[];
+  let buf="";
+  const flush=()=>{
+    if(!buf)return;
+    out.push({t:"l",m:buf,...stack.reduce((a,s)=>({...a,...s}),{} as Style)});
+    buf="";
+  };
+  for(let i=0;i<src.length;){
+    const ch=src[i];
+    if(ch==="\n"){flush();out.push({t:"nl"});i++;continue;}
+    if(ch==="\\"){
+      const rest=src.slice(i+1);
+      if(rest.startsWith("End")){flush();stack.pop();i+=4;continue;}
+      if(rest.startsWith("n")){flush();out.push({t:"nl"});i+=2;continue;}
+      if(rest.startsWith("\\")){buf+="\\";i+=2;continue;}
+      const tag=tags.find(t=>rest.startsWith(t.name));
+      if(tag){flush();stack.push(tag.style);i+=1+tag.name.length;continue;}
+    }
+    buf+=ch;i++;
+  }
+  flush();
+  return out;
+};
 export const Log=({logObject}:{
   logObject:logs.LogType;
 }):ReactElement=>{

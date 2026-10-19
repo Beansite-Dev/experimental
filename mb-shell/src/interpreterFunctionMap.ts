@@ -3,6 +3,7 @@ import { clamp, getMinLength, lslFormatDateTime, parseError, parsePath } from ".
 import { getDefaultStore, SetStateAction } from "jotai/vanilla";
 import { logAtom, mbsh } from "./store";
 import { useShell } from "./hook";
+import { parseLog } from "./logs";
 export const functionMapBase:{
   [key:string]:((
     command:string,
@@ -161,8 +162,9 @@ export const functionMapBase:{
   },
   whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[]):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);promise[0](0)},
   echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],...args:string[]):void=>{
-    const message=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
-    setLogs(x=>[...x, { t:"l", m:message },{t:"nl"}]);
+    // const m=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
+    // setLogs(x=>[...x,{t:"l",m},{t:"nl"}]);
+    setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](0);
   }
 };
@@ -195,7 +197,7 @@ export const runShellCommand=(
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   // sandboxedShell_mods:ReturnType<typeof useShell>[6],
 ):Promise<void>=>{
-  const parsedCommand:string[]=command.trim().split(/\s+/);
+  const parsedCommand:string[]=(command.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
   const args:string[]=iOfRedirOp>0?parsedCommand.slice(0,iOfRedirOp):parsedCommand;
   let outputPath:string|undefined;
