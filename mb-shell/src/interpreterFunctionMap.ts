@@ -1,7 +1,7 @@
 import { DirectoryNotFoundError, mbfs, modTypes } from "mb-fs2";
 import { clamp, getMinLength, lslFormatDateTime, parseError, parsePath } from "./lib";
 import { getDefaultStore, SetStateAction } from "jotai/vanilla";
-import { logAtom } from "./store";
+import { logAtom, mbsh } from "./store";
 import { useShell } from "./hook";
 export const functionMapBase:{
   [key:string]:((
@@ -191,6 +191,8 @@ export const runShellCommand=(
   setLogs:(update:SetStateAction<logs.LogType[]>)=>void,
   dirTree:string[],
   interpreter:ReturnType<typeof useShell>[2],
+  vars:mbsh.ShellVariable[],
+  setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   // sandboxedShell_mods:ReturnType<typeof useShell>[6],
 ):Promise<void>=>{
   const parsedCommand:string[]=command.trim().split(/\s+/);
@@ -221,8 +223,30 @@ export const runShellCommand=(
         message:"redirect operator cannot point to nothing",
       });
     }
+    console.log(args[0],args[0][0],args[0][0]=="$");
     const fn=Object.hasOwn(functionMap,args[0])?functionMap[args[0]]:undefined;
     if(!fn){
+      if(args[0][0]=="$"){
+        if(vars.map(x=>x.name).includes(args[0].slice(1))){
+          setLogs(x=>[...x,
+            {t:"l",m:vars.filter(x=>x.name==args[0].slice(1))[0].value},
+            {t:"nl"},{t:"nl"},
+          ]);
+          resolve(0);
+        }else{
+          reject({
+            name:"VariableNotFoundError",
+            message:`Variable ${args[0].slice(1)} is not defined. Check ~/.mbshrc to see if it is defined`
+          });
+        }
+      }
+      if(args.join(" ").match(/^[^=\s]+=\b.+\b$/g)){
+        const variableDefArr=args[0].split("=");
+        const name:string=variableDefArr[0];
+        const value:string=[variableDefArr[1],...args.slice(1)].join(" ");
+        setVars(x=>[...x,{name,value}]);
+        resolve(0);
+      }
       const bin:mbfs.Directory=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(["bin"]));
       const binCommandPointer:mbfs.File|undefined=bin.data[Object.keys(bin.data)
         .filter(x=>

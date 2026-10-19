@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { v4 as uuidv4 } from 'uuid';
 import * as z from "zod";
+import { fa } from 'zod/locales';
 //S=schema => only if name without s is taken
 export const userPermsS=z.object({
   administrators:z.boolean().default(false),
@@ -84,6 +85,67 @@ export const fsAtom=atom<mbfs.Directory>({
               system:false,
               directory:false,
               executable:true,
+            }
+          },
+        },   
+      },
+      metadata:{
+        access:{
+          read:{
+            administrators:true,
+            users:true,
+            guests:false,
+          },
+          write:{
+            administrators:true,
+            users:false,
+            guests:false,
+          },
+        },
+        date:{
+          created:new Date(),
+          modified:new Date(),
+          accessed:new Date(),
+        },
+        originalCreator:"root",
+        typeof:{
+          system:true,
+          directory:true,
+          executable:false,
+        }
+      },
+    },
+    [uuidv4()]:{
+      name:"home",
+      data:{
+        [uuidv4()]:{
+          name:"administrator",
+          data:{
+
+          },
+          metadata:{
+            access:{
+              read:{
+                administrators:true,
+                users:true,
+                guests:false,
+              },
+              write:{
+                administrators:true,
+                users:false,
+                guests:false,
+              },
+            },
+            date:{
+              created:new Date(),
+              modified:new Date(),
+              accessed:new Date(),
+            },
+            originalCreator:"administrator",
+            typeof:{
+              system:false,
+              directory:true,
+              executable:false,
             }
           },
         },   

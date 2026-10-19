@@ -1,5 +1,5 @@
 import { useAtom, useStore } from "jotai/react";
-import { logAtom } from "./store";
+import { logAtom, variableAtom } from "./store";
 import { ReactNode } from "react";
 import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem, fsAtom as filesystemAtom } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
@@ -19,6 +19,7 @@ export const useShell=():[
   ReturnType<typeof useFileSystem>[3],//modifier functions
 ]=>{
   const[logs,setLogs]=useAtom(logAtom);
+  const[vars,setVars]=useAtom(variableAtom);
   const[
     filesystem,
     scope,
@@ -39,7 +40,9 @@ export const useShell=():[
         logs,
         setLogs,
         dirTree,
-        interpreter
+        interpreter,
+        vars,
+        setVars,
       );
     };
   };

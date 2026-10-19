@@ -26,6 +26,7 @@
 #### todo
 - FIX RM !!
 - Add variable support (with syntax like VAR="abcd")
+- Add interactable text support using buttons
 - implement commands
   - neofetch (in /Programs/neofetch.sh with data being a shell string)
   - cat
