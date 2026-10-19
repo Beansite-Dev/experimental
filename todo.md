@@ -25,13 +25,7 @@
 ## mb-shell
 #### todo
 - FIX RM !!
-- build commands/libs/init systems into the filesystem directly be linking their scripts to files and create a sandboxed environment where lack of those files would throw errors
-  - idea is all inits and other systems would require a filesystem pointer, and will cease to work if that pointer is missing.
-  - I intend to make all app actually exist as files (under the `exe` type with `object.metadata.typeof.executable` as `true`)
-    - These apps will have special metadata which i will add to the file types in mb-fs2 and will be likely be able to store data in the filesystem
-- I want there to also be an interpreted shell system
-  - every line in beanshell code should check if the command exists in bin
-    - the command should point to the function in lib via searching for strings in an object
+- Add variable support (with syntax like VAR="abcd")
 - implement commands
   - neofetch (in /Programs/neofetch.sh with data being a shell string)
   - cat
@@ -45,6 +39,13 @@
 - Add to mkdir to allow it to create directories from anywhere
 
 #### done
+- build commands/libs/init systems into the filesystem directly be linking their scripts to files and create a sandboxed environment where lack of those files would throw errors
+  - idea is all inits and other systems would require a filesystem pointer, and will cease to work if that pointer is missing.
+  - I intend to make all app actually exist as files (under the `exe` type with `object.metadata.typeof.executable` as `true`)
+    - These apps will have special metadata which i will add to the file types in mb-fs2 and will be likely be able to store data in the filesystem
+- I want there to also be an interpreted shell system
+  - every line in beanshell code should check if the command exists in bin
+    - the command should point to the function in lib via searching for strings in an object
 - implemented commands
   - cd +fix
   - ls

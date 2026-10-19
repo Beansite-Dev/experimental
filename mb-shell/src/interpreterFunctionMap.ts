@@ -191,7 +191,6 @@ export const runShellCommand=(
   setLogs:(update:SetStateAction<logs.LogType[]>)=>void,
   dirTree:string[],
   interpreter:ReturnType<typeof useShell>[2],
-  echo:boolean,
   // sandboxedShell_mods:ReturnType<typeof useShell>[6],
 ):Promise<void>=>{
   const parsedCommand:string[]=command.trim().split(/\s+/);

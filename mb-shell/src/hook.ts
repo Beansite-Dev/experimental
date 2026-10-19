@@ -30,7 +30,8 @@ export const useShell=():[
   const interpreter=(code:string,echo:boolean)=>{
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
-      setLogs(x=>[...x, {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}]); //temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      //temp, will likely add custom feature here instead. maybe even be like ohmyposh
+      if(echo)setLogs(x=>[...x, {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}]);
       runShellCommand(
         command,
         scope,
@@ -38,8 +39,7 @@ export const useShell=():[
         logs,
         setLogs,
         dirTree,
-        interpreter,
-        echo
+        interpreter
       );
     };
   };
