@@ -220,6 +220,23 @@ export const runShellCommand=(
     }
     const fn=Object.hasOwn(functionMap,args[0])?functionMap[args[0]]:undefined;
     if(!fn){
+      //
+      //
+      // add checker for /bin to see if it is a valid program
+      //
+      //
+      const bin:mbfs.Directory=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(["bin"]));
+      const binCommandPointer:mbfs.File|undefined=bin.data[Object.keys(bin.data)
+        .filter((x)=>bin.data[x].name==args[0])[0]]as mbfs.File|undefined;
+      console.log(bin,binCommandPointer);
+      if(
+        binCommandPointer
+        &&(binCommandPointer.metadata.typeof.executable
+          ||["exe","sh","bat"].includes(binCommandPointer.type))
+      ){
+        console.log(`found pointer for command ${binCommandPointer.name} in "/bin"`);
+        return resolve(0);
+      }
       return reject({
         name:"CommandNotFoundError",
         message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,

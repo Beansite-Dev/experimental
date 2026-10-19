@@ -83,7 +83,7 @@ export const fsAtom=atom<mbfs.Directory>({
             typeof:{
               system:false,
               directory:false,
-              executable:false,
+              executable:true,
             }
           },
         },   

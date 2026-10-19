@@ -14,6 +14,7 @@ export type modTypes={
   getUuidsFromFileNames:(names:string[])=>string[];
   getNamesFromUuids:(uuids:string[])=>string[];
   getFileSystem:()=>mbfs.Directory;
+  getDirectoryContents:(path:string[])=>mbfs.Directory;
   //modifiers
   createFile:(path:string[],fileData:mbfs.File)=>void;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
@@ -43,13 +44,7 @@ export const useFileSystem=():[
       mods.enterDirectoryFromPath(dirTree.slice(0,-1));
     },
     enterDirectoryFromPath:(path:string[]):void=>{
-      let d:mbfs.Directory=fs;
-      for(const u of path){
-        const n=d.data[u];
-        if(!n)throw new DirectoryNotFoundError(`no entry with uuid ${u} in "${d.name}"`);
-        if(!n.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${n.name}" (${u}) is a file, not a directory`);
-        d=n as mbfs.Directory;
-      }
+      let d:mbfs.Directory=mods.getDirectoryContents(path);
       setScope(d);
       setDirTree([...path]);
     },
@@ -103,6 +98,16 @@ export const useFileSystem=():[
     },
     //js incase only mods is provided
     getFileSystem:():mbfs.Directory=>fs,
+    getDirectoryContents:(path:string[]):mbfs.Directory=>{
+      let d:mbfs.Directory=fs;
+      for(const u of path){
+        const n=d.data[u];
+        if(!n)throw new DirectoryNotFoundError(`no entry with uuid ${u} in "${d.name}"`);
+        if(!n.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${n.name}" (${u}) is a file, not a directory`);
+        d=n as mbfs.Directory;
+      }
+      return d;
+    },
     createFile:(path:string[],fileData:mbfs.File):void=>{
       const parsed=file.parse(fileData);
       const uuidOfNewFile=uuidv4();
