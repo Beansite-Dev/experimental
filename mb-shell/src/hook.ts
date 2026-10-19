@@ -38,6 +38,7 @@ export const useShell=():[
         logs,
         setLogs,
         dirTree,
+        interpreter
       );
     };
   };

@@ -2,6 +2,7 @@ import { DirectoryNotFoundError, mbfs, modTypes } from "mb-fs2";
 import { clamp, getMinLength, lslFormatDateTime, parseError, parsePath } from "./lib";
 import { getDefaultStore, SetStateAction } from "jotai/vanilla";
 import { logAtom } from "./store";
+import { useShell } from "./hook";
 export const functionMapBase:{
   [key:string]:((
     command:string,
@@ -189,6 +190,8 @@ export const runShellCommand=(
   logs:logs.LogType[],
   setLogs:(update:SetStateAction<logs.LogType[]>)=>void,
   dirTree:string[],
+  interpreter:ReturnType<typeof useShell>[2],
+  // sandboxedShell_mods:ReturnType<typeof useShell>[6],
 ):Promise<void>=>{
   const parsedCommand:string[]=command.trim().split(/\s+/);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
@@ -238,6 +241,11 @@ export const runShellCommand=(
       ){
         console.log(`found pointer for command ${binCommandPointer.name} in "/bin"`);
         //running file goes here
+        //does not work
+        // sandboxedShell_mods.enterDirectoryFromPath(dirTree);
+        // if(["bat","sh"].includes(binCommandPointer.type))sandboxedShell_interpreter(String(binCommandPointer.data));
+        if(["bat","sh"].includes(binCommandPointer.type))
+          interpreter(String(binCommandPointer.data))
         return resolve(0);
       }else if(Array.isArray(parsedPath)){
         const pathOfInput:string[]=parsedPath.slice(0,-1);
@@ -253,6 +261,8 @@ export const runShellCommand=(
         if(filePointer&&filePointer.metadata.typeof.executable){
           console.log(`found pointer for command ${possibleFileName}||${filePointer.name} in relatively in ${pathOfInput}`);
           //running file goes here
+          if(["bat","sh"].includes((filePointer as mbfs.File).type))
+            interpreter(String(filePointer.data))
           return resolve(0);
         }else return reject({
           name:"CommandNotFoundError",
