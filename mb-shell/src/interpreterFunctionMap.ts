@@ -235,7 +235,6 @@ export const runShellCommand=(
       if(
         binCommandPointer
         &&binCommandPointer.metadata.typeof.executable
-        // ||["exe","sh","bat"].includes(binCommandPointer.type))
       ){
         console.log(`found pointer for command ${binCommandPointer.name} in "/bin"`);
         //running file goes here
@@ -248,7 +247,7 @@ export const runShellCommand=(
           Object.keys(contentsOfParseInputPath.data).filter(
             x=>contentsOfParseInputPath.data[x].name===possibleFileName.split(".")[0]
             &&(possibleFileName.split(".")[1]
-              ?(contentsOfParseInputPath.data[x] as mbfs.File).type===possibleFileName.split(".")[1]
+              ?(contentsOfParseInputPath.data[x]as mbfs.File).type===possibleFileName.split(".")[1]
               :true)
           )[0]];
         if(filePointer&&filePointer.metadata.typeof.executable){
