@@ -4,67 +4,29 @@
 - add git submodules for mb-fs2
 
 ## mb-fs2
-#### todo
 - make function to move files and swap file uuids (should be easy)
 - block 2 files with the same name in same dir: file.txt file (1).txt
 - Add function to get file contents from a uuid getFileContentsFromUuid
 - Add function to get file contents from file name getFileContentsFromFileName 
 - Fix file querying functions (like getUuidsFromFileNames) 
 
-#### done
-- implement functions in mb-fs2/hook.ts
-  - Name getter for dir tree (which takes the files uuids and turns it into an array of names of them instead)
-  - Function (internal maybe) for browsing thru the filesystem like setting scope (review mb8.1 codebase for ref)
-  - Implement a file getter
-  - File creation
-  - File Deletion
-  - File modification
-- Possibly implement a built in version of the file explorer thats style can be modified  
-
 
 ## mb-shell
-#### todo
 - FIX RM !!
 - Add interactable text support using <button/>
 - Add text inputs using <input/>
 - Add keyboard support to send keyboard inputs as text characters
-- Allow commands to recieve keyboard shortcuts like ctrl+c to quit
+- Allow commands to receive keyboard shortcuts like ctrl+c to quit
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
   - cat
   - grep
   - rmdir
-  - sudo
   - mv
-- improve echo to have more versatility with new color options
 - implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
 - Add to mkdir to allow it to create directories from anywhere
 - shell file scripts will not properly use redirect operators
-
-#### done
-- Add variable support (with syntax like VAR="abcd")
-- build commands/libs/init systems into the filesystem directly be linking their scripts to files and create a sandboxed environment where lack of those files would throw errors
-  - idea is all inits and other systems would require a filesystem pointer, and will cease to work if that pointer is missing.
-  - I intend to make all app actually exist as files (under the `exe` type with `object.metadata.typeof.executable` as `true`)
-    - These apps will have special metadata which i will add to the file types in mb-fs2 and will be likely be able to store data in the filesystem
-- I want there to also be an interpreted shell system
-  - every line in beanshell code should check if the command exists in bin
-    - the command should point to the function in lib via searching for strings in an object
-- implemented commands
-  - neofetch (in /Programs/neofetch.sh with data being a shell string)
-  - cd +fix
-  - ls
-  - touch
-  - mkdir
-  - echo
-  - whoami
-- Rework ls/dir to show file details (Size, Modified Date)
-- add a text color interpreter to allow results from the shell logs to return as full color
-  - We can do this by making logs be able to be of type string|ReactNode which should allow us to include spans with classes. I also want to include a bundle css wrapper that include the color styling.
-- In explorer (where the only delete function tester exists), it fails to delete files past root because it wont nest
-- IMPLEMENT FEATURE TO HAVE LOGS ALSO ADD TO PROMISE SO IT GES RESOLVED AS R. R WILL PREFERABLY BE OF TYPE string[]
-- ability to "ex" > file.txt (redirect operator)
 
 ## mb-win2
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
