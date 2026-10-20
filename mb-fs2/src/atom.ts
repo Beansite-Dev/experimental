@@ -62,8 +62,7 @@ export const fsAtom=atom<mbfs.Directory>({
         [uuidv4()]:{
           name:"neofetch",
           type:"bat",
-          data:`
-echo "         \\Red%%%%%\\End       \\Cyanadminstrator\\End@\\Cyanlocalhost\\End\\n";
+          data:`echo "         \\Red%%%%%\\End       \\Cyanadminstrator\\End@\\Cyanlocalhost\\End\\n";
 echo "        \\Red% %%%%%\\End      ----------------------\\n";
 echo "  \\Cyan%%%%%%\\End\\Red%% %%%%%\\End     \\CyanOS: \\EndBeansite Experimental Project 9.0\\n";
 echo " \\Cyan%%%%% %%\\End\\Red%%%%%%%%\\End    \\CyanHost: \\EndWeb\\n";
@@ -96,7 +95,7 @@ echo "\\bgBrightGreen   \\End";
 echo "\\bgBrightCyan   \\End";
 echo "\\bgBrightBlue   \\End";
 echo "\\bgBrightMagenta   \\End";
-echo "\\n";
+echo "\\n\\n";
           `,
           metadata:{
             access:{
