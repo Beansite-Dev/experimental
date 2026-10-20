@@ -55,9 +55,12 @@ export const functionMapBase:{
       {t:"nl"},{t:"nl"},
     ]);promise[0](0);}
     if(args.includes("-l")){setLogs(x=>[...x,
+      {t:"l",m:`total ${JSON.stringify(scope).length} bytes`},{t:"nl"},
       ...Object.keys(scope.data).map((key):logs.LogType[]=>([
         {t:"l",
-          m:`${scope.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-x. `,
+          m:`${scope.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-${
+            scope.data[key].metadata.typeof.directory
+            ||scope.data[key].metadata.typeof.executable?"x":"-"}. `,
         },{t:"l",
           m:`1 `,
         },{t:"l",
