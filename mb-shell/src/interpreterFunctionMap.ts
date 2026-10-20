@@ -163,8 +163,6 @@ export const functionMapBase:{
   },
   whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);promise[0](0)},
   echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,...args:string[]):void=>{
-    // const m=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
-    // setLogs(x=>[...x,{t:"l",m},{t:"nl"}]);
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](0);
   }
@@ -271,10 +269,6 @@ export const runShellCommand=(
         &&binCommandPointer.metadata.typeof.executable
       ){
         console.log(`found pointer for command ${binCommandPointer.name} in "/bin"`);
-        //running file goes here
-        //does not work
-        // sandboxedShell_mods.enterDirectoryFromPath(dirTree);
-        // if(["bat","sh"].includes(binCommandPointer.type))sandboxedShell_interpreter(String(binCommandPointer.data));
         if(["bat","sh"].includes(binCommandPointer.type))
           interpreter(String(binCommandPointer.data),false);
         return resolve(0);
