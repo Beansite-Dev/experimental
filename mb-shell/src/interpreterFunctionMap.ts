@@ -214,6 +214,7 @@ export const runShellCommand=(
     setLogs(update);
   };
   return new Promise<unknown>((resolve,reject)=>{
+    if(!args[0])resolve(0);
     if(iOfRedirOp===0)return reject({
       name:"InvalidRedirectOperatorUsage",
       message:"blank commands cannot be passed to redirect operators",

@@ -25,14 +25,12 @@
 ## mb-shell
 #### todo
 - FIX RM !!
-- Add variable support (with syntax like VAR="abcd")
 - Add interactable text support using <button/>
 - Add text inputs using <input/>
 - Add keyboard support to send keyboard inputs as text characters
 - Allow commands to recieve keyboard shortcuts like ctrl+c to quit
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
-  - neofetch (in /Programs/neofetch.sh with data being a shell string)
   - cat
   - grep
   - rmdir
@@ -44,6 +42,7 @@
 - Add to mkdir to allow it to create directories from anywhere
 
 #### done
+- Add variable support (with syntax like VAR="abcd")
 - build commands/libs/init systems into the filesystem directly be linking their scripts to files and create a sandboxed environment where lack of those files would throw errors
   - idea is all inits and other systems would require a filesystem pointer, and will cease to work if that pointer is missing.
   - I intend to make all app actually exist as files (under the `exe` type with `object.metadata.typeof.executable` as `true`)
@@ -52,6 +51,7 @@
   - every line in beanshell code should check if the command exists in bin
     - the command should point to the function in lib via searching for strings in an object
 - implemented commands
+  - neofetch (in /Programs/neofetch.sh with data being a shell string)
   - cd +fix
   - ls
   - touch
