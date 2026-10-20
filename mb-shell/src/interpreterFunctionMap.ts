@@ -12,10 +12,11 @@ export const functionMapBase:{
     setLogs:((update:SetStateAction<logs.LogType[]>)=>void),
     promise:[(value:number|PromiseLike<number>)=>void,(reason?:any)=>void],
     dirTree:string[],
+    sudo:boolean,
     ...args:string[]
   )=>void)|void;
 }={
-  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],inputPath:string):void=>{
+  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,inputPath:string):void=>{
     //f=arrOfFileNames (shortened cuz my keyboard is ass)
     let f:string[]=[];
     let parsed:string[];
@@ -37,7 +38,7 @@ export const functionMapBase:{
       promise[1](e);
     };
   },
-  ls:(_command,scope,_mods,setLogs,promise,dirTree:string[],...args:string[]):void=>{
+  ls:(_command,scope,_mods,setLogs,promise,dirTree:string[],sudo,...args:string[]):void=>{
     // new ls post rework
     const minObjLen:number=getMinLength(Object.keys(scope.data).map(x=>`${scope.data[x].name}${!scope.data[x].metadata.typeof.directory?"."+(scope.data[x] as mbfs.File).type:""}`),1);
     const lMinNameLen:number=getMinLength(Object.keys(scope.data).map(x=>scope.data[x].metadata.originalCreator),1);
@@ -81,8 +82,8 @@ export const functionMapBase:{
       {t:"nl"}
     ]);promise[0](0);}
   },
-  cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);},
-  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],fileName:string):void=>{
+  cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](0);},
+  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,fileName:string):void=>{
     const name=fileName.split(".")[0];
     const type=fileName.split(".")[1]||"txt";
     mods.createFile(dirTree,{
@@ -117,7 +118,7 @@ export const functionMapBase:{
     });
     promise[0](0);
   },
-  rm:(_command,_scope,_mods,_setLogs,promise,_dirTree:string[],_filePath:string):void=>{
+  rm:(_command,_scope,_mods,_setLogs,promise,_dirTree:string[],sudo,filePath:string):void=>{
     promise[0](0);
     
     //!old rm, fileName => filePath now
@@ -128,7 +129,7 @@ export const functionMapBase:{
     //   setLogs(x=>[...x,...parseError(command,error.name,error.message)]);
     // }
   },
-  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],name:string):void=>{
+  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,name:string):void=>{
     mods.createDirectory(dirTree,{
       name,
       data:{},
@@ -160,8 +161,8 @@ export const functionMapBase:{
     });
     promise[0](0);
   },
-  whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[]):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);promise[0](0)},
-  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],...args:string[]):void=>{
+  whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);promise[0](0)},
+  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,...args:string[]):void=>{
     // const m=args.join(" ").trim().replace(/\s+/g," "); // Remove redundant spaces
     // setLogs(x=>[...x,{t:"l",m},{t:"nl"}]);
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
@@ -176,14 +177,15 @@ export const functionMap:Record<string,(
   setLogs:((update: SetStateAction<logs.LogType[]>)=>void),
   promise:[(value:number|PromiseLike<number>)=>void,(reason?:any)=>void],
   dirTree:string[],
+  sudo:boolean,
   ...args:string[]
 )=>void>={
   ...functionMapBase,
   "":()=>{},
   dir: functionMapBase.ls!,
   clear: functionMapBase.cls!,
-  "ll":(command,scope,mods,setLogs,promise,dirTree:string[])=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,"-l"),
-  "cd..":(command,scope,mods,setLogs,promise,dirTree:string[])=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,".."),
+  "ll":(command,scope,mods,setLogs,promise,dirTree:string[],sudo)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,"-l"),
+  "cd..":(command,scope,mods,setLogs,promise,dirTree:string[],sudo)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,".."),
 };
 export const runShellCommand=(
   command:string,
@@ -199,7 +201,9 @@ export const runShellCommand=(
 ):Promise<void>=>{
   const parsedCommand:string[]=(command.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
-  const args:string[]=iOfRedirOp>0?parsedCommand.slice(0,iOfRedirOp):parsedCommand;
+  let args:string[]=iOfRedirOp>0?parsedCommand.slice(0,iOfRedirOp):parsedCommand;
+  let sudo:boolean=false;
+  if(args[0]=="sudo"){args=args.slice(1);sudo=true;}
   let outputPath:string|undefined;
   const captured:string[]=[];
   let mirror:logs.LogType[]=logs;
@@ -272,7 +276,7 @@ export const runShellCommand=(
         // sandboxedShell_mods.enterDirectoryFromPath(dirTree);
         // if(["bat","sh"].includes(binCommandPointer.type))sandboxedShell_interpreter(String(binCommandPointer.data));
         if(["bat","sh"].includes(binCommandPointer.type))
-          interpreter(String(binCommandPointer.data),false)
+          interpreter(String(binCommandPointer.data),false);
         return resolve(0);
       }else if(Array.isArray(parsedPath)){
         const pathOfInput:string[]=parsedPath.slice(0,-1);
@@ -301,7 +305,7 @@ export const runShellCommand=(
         message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
       });
     }
-    fn(command,scope,mods,setLogsWithLogger,[resolve,reject],dirTree,...args.slice(1));
+    fn(command,scope,mods,setLogsWithLogger,[resolve,reject],dirTree,sudo,...args.slice(1));
   }).then(r=>{
     if(!outputPath)return;
     if(line)captured.push(line);
