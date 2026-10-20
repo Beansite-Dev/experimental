@@ -26,7 +26,11 @@
 #### todo
 - FIX RM !!
 - Add variable support (with syntax like VAR="abcd")
-- Add interactable text support using buttons
+- Add interactable text support using <button/>
+- Add text inputs using <input/>
+- Add keyboard support to send keyboard inputs as text characters
+- Allow commands to recieve keyboard shortcuts like ctrl+c to quit
+- use `.toml` files under `/.config` or `~/.config`
 - implement commands
   - neofetch (in /Programs/neofetch.sh with data being a shell string)
   - cat
