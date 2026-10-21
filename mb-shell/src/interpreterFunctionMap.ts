@@ -198,7 +198,6 @@ export const runShellCommand=(
   interpreter:ReturnType<typeof useShell>[2],
   vars:mbsh.ShellVariable[],
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
-  // sandboxedShell_mods:ReturnType<typeof useShell>[6],
 ):Promise<void>=>{
   const parsedCommand:string[]=(command.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
