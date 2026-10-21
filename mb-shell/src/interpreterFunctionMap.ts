@@ -344,13 +344,15 @@ export const runShellCommand=(
   }).then(r=>{
     if(!outputPath)return;
     if(line)captured.push(line);
-    const slash=outputPath.lastIndexOf("/");
-    const dir=slash===0?"/":slash>0?outputPath.slice(0,slash):"";
-    const file=outputPath.slice(slash+1);
-    const dot=file.lastIndexOf(".");
-    const now=new Date();
-    const cwdNames=mods.getNamesFromUuids(dirTree);
-    const dirPath=dir===""||dir==="."?cwdNames:parsePath(dir,cwdNames);
+    // +--* this entire section is stupid
+    /* | */ const slash=outputPath.lastIndexOf("/");
+    /* | */ const dir=slash===0?"/":slash>0?outputPath.slice(0,slash):"";
+    /* | */ const file=outputPath.slice(slash+1);
+    /* | */ const dot=file.lastIndexOf(".");
+    /* | */ const now=new Date();
+    /* | */ const cwdNames=mods.getNamesFromUuids(dirTree);
+    /* | */ const dirPath=dir===""||dir==="."?cwdNames:parsePath(dir,cwdNames);
+    // +--> up to here
     mods.createFile(dirPath,{
       name:dot>0?file.slice(0,dot):file,
       type:dot>0?file.slice(dot+1):"",
