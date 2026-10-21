@@ -302,7 +302,16 @@ export const runShellCommand=(
         message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
       });
     }
-    fn(command,scope,mods,setLogsWithLogger,[resolve,reject],dirTree,sudo,...args.slice(1));
+    fn(
+      command,
+      scope,
+      mods,
+      setLogsWithLogger,
+      [resolve,reject],
+      dirTree,
+      sudo,
+      ...args.slice(1)
+    );
   }).then(r=>{
     if(!outputPath)return;
     if(line)captured.push(line);
