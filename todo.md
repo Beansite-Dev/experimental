@@ -19,7 +19,6 @@
 - Allow commands to receive keyboard shortcuts like ctrl+c to quit
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
-  - cat
   - grep
   - rmdir
   - mv

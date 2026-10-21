@@ -121,6 +121,24 @@ export const functionMapBase:{
     });
     promise[0](0);
   },
+  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,filePath):void=>{
+    const parsedPath:string[]=parsePath(filePath,dirTree);
+    if(parsedPath){
+      const newFilePath=parsedPath.slice(0,-1);
+      const newFileName=parsedPath.slice(-1)[0];
+      const newFilePathUUIDs=mods.getUuidsFromDirectoryNames(newFilePath);
+      const dir=mods.getDirectoryContents(newFilePathUUIDs).data;
+      const m=String(dir[Object.keys(dir).filter(x=>
+         dir[x].name===newFileName.split(".")[0]
+         &&(newFileName.split(".")[1]?
+          (dir[x] as mbfs.File).type===newFileName.split(".")[1]
+          :true)
+      )[0]].data);
+      setLogs(x=>[...x,{t:"l",m}]);
+      promise[0](0);
+    }
+    // mods.getFilesystemObjectInfo();
+  },
   rm:(_command,_scope,_mods,_setLogs,promise,_dirTree:string[],sudo,filePath:string):void=>{
     promise[0](0);
     
