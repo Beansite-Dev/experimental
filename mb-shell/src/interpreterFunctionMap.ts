@@ -29,6 +29,8 @@ export const functionMapBase:{
       if(debug)console.warn("=> cd res: ",f,parsed);
       mods.enterDirectoryFromPath(parsed);
       setLogs(x=>[...x.slice(0,-2),
+        {t:"nl"},
+        {t:"nl"},
         {t:"l",m:`c:/${f.join("/")} > ${command}`},
         {t:"nl"},
       ]);
@@ -52,7 +54,6 @@ export const functionMapBase:{
           :{},
         m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`.padEnd(minObjLen),
       })),
-      {t:"nl"},{t:"nl"},
     ]);promise[0](0);}
     if(args.includes("-l")){setLogs(x=>[...x,
       {t:"l",m:`total ${JSON.stringify(scope).length} bytes`},{t:"nl"},
@@ -82,7 +83,6 @@ export const functionMapBase:{
         },
         {t:"nl"}
       ])).flat(),
-      {t:"nl"}
     ]);promise[0](0);}
   },
   cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](0);},
@@ -198,7 +198,7 @@ export const functionMapBase:{
     });
     promise[0](0);
   },
-  whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},{t:"nl"}]);promise[0](0)},
+  whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](0)},
   echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,...args:string[]):void=>{
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](0);
@@ -271,7 +271,6 @@ export const runShellCommand=(
         if(vars.map(x=>x.name).includes(args[0].slice(1))){
           setLogs(x=>[...x,
             {t:"l",m:vars.filter(x=>x.name==args[0].slice(1))[0].value},
-            {t:"nl"},{t:"nl"},
           ]);
           resolve(0);
         }else{
