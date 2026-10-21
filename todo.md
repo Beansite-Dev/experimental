@@ -17,6 +17,7 @@
 - Add text inputs using `<input/>`
 - Add keyboard support to send keyboard inputs as text characters
 - Allow commands to receive keyboard shortcuts like ctrl+c to quit
+- cannot use redirect operator in a directory past root bc of error `no entry with uuid lol in "root"`
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
   - grep

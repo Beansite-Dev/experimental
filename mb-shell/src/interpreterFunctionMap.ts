@@ -28,7 +28,7 @@ export const functionMapBase:{
       mods.enterDirectoryFromPath(parsed);
       if(debug)console.warn("=> cd res: ",f,parsed);
       mods.enterDirectoryFromPath(parsed);
-      setLogs(x=>[...x.slice(0,-2),{t:"nl"},{t:"nl"},
+      setLogs(x=>[...x.slice(0,-2),
         {t:"l",m:`c:/${f.join("/")} > ${command}`},{t:"nl"},
       ]);
       promise[0](0);
@@ -78,7 +78,7 @@ export const functionMapBase:{
             :{},
           m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`,
         },
-        ...(Object.keys(scope.data).length-1<i?[{t:"nl"}as logs.LogType]:[])
+        ...(Object.keys(scope.data).length-1>i?[{t:"nl"}as logs.LogType]:[])
       ])).flat(),
     ]);promise[0](0);}
   },
