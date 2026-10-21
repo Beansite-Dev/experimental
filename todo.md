@@ -13,8 +13,8 @@
 
 ## mb-shell
 - FIX RM !!
-- Add interactable text support using <button/>
-- Add text inputs using <input/>
+- Add interactable text support using `<button/>`
+- Add text inputs using `<input/>`
 - Add keyboard support to send keyboard inputs as text characters
 - Allow commands to receive keyboard shortcuts like ctrl+c to quit
 - use `.toml` files under `/.config` or `~/.config`
