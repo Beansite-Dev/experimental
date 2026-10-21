@@ -150,7 +150,7 @@ export const functionMapBase:{
          &&(newFileName.split(".")[1]?
           (dir[x] as mbfs.File).type===newFileName.split(".")[1]
           :true)
-      )[0]].data).split('').reverse().join('');
+      )[0]].data).split('\n').reverse().join('');
       setLogs(x=>[...x,{t:"l",m}]);
       promise[0](0);
     }
