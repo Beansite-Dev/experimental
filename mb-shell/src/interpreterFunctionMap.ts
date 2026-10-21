@@ -28,11 +28,8 @@ export const functionMapBase:{
       mods.enterDirectoryFromPath(parsed);
       if(debug)console.warn("=> cd res: ",f,parsed);
       mods.enterDirectoryFromPath(parsed);
-      setLogs(x=>[...x.slice(0,-2),
-        {t:"nl"},
-        {t:"nl"},
-        {t:"l",m:`c:/${f.join("/")} > ${command}`},
-        {t:"nl"},
+      setLogs(x=>[...x.slice(0,-2),{t:"nl"},{t:"nl"},
+        {t:"l",m:`c:/${f.join("/")} > ${command}`},{t:"nl"},
       ]);
       promise[0](0);
     }catch(e){
@@ -57,7 +54,7 @@ export const functionMapBase:{
     ]);promise[0](0);}
     if(args.includes("-l")){setLogs(x=>[...x,
       {t:"l",m:`total ${JSON.stringify(scope).length} bytes`},{t:"nl"},
-      ...Object.keys(scope.data).map((key):logs.LogType[]=>([
+      ...Object.keys(scope.data).map((key,i):logs.LogType[]=>([
         {t:"l",
           m:`${scope.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-${
             scope.data[key].metadata.typeof.directory
@@ -81,7 +78,7 @@ export const functionMapBase:{
             :{},
           m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`,
         },
-        {t:"nl"}
+        ...(Object.keys(scope.data).length-1<i?[{t:"nl"}as logs.LogType]:[])
       ])).flat(),
     ]);promise[0](0);}
   },

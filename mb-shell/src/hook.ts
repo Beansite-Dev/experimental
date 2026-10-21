@@ -32,7 +32,9 @@ export const useShell=():[
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
       //temp, will likely add custom feature here instead. maybe even be like ohmyposh
-      if(echo)setLogs(x=>[...x, {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}]);
+      if(echo)setLogs(x=>[...x,{t:"nl"},{t:"nl"},
+        {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}
+      ]);
       runShellCommand(
         command,
         scope,
