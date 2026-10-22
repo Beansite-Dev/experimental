@@ -344,18 +344,14 @@ export const runShellCommand=(
   }).then(r=>{
     if(!outputPath)return;
     if(line)captured.push(line);
-    // +--* this entire section is stupid
-    /* | */ const slash=outputPath.lastIndexOf("/");
-    /* | */ const dir=slash===0?"/":slash>0?outputPath.slice(0,slash):"";
-    /* | */ const file=outputPath.slice(slash+1);
-    /* | */ const dot=file.lastIndexOf(".");
-    /* | */ const now=new Date();
-    /* | */ const cwdNames=mods.getNamesFromUuids(dirTree);
-    /* | */ const dirPath=dir===""||dir==="."?cwdNames:parsePath(dir,cwdNames);
-    // +--> up to here
-    mods.createFile(dirPath,{
-      name:dot>0?file.slice(0,dot):file,
-      type:dot>0?file.slice(dot+1):"",
+    const now=new Date();
+    const cwdNames=mods.getNamesFromUuids(dirTree);
+    const path=parsePath(outputPath,cwdNames);
+    const newFilePath=mods.getUuidsFromDirectoryNames(path.slice(0,-1));
+    const name=path.slice(-1)[0].split(".")[0];
+    const type=path.slice(-1)[0].split(".")[1]||"";
+    mods.createFile(newFilePath,{
+      name,type,
       data:captured.join("\n"),
       metadata:{
         access:{
@@ -369,6 +365,6 @@ export const runShellCommand=(
     });
   }).catch(e=>{
     const err=e as {name:string;message:string};
-    setLogs(x=>[...x,...parseError(command,err.name,err.message),]);
+    setLogs(x=>[...x,{t:"nl"},...parseError(command,err.name,err.message),]);
   });
 };
