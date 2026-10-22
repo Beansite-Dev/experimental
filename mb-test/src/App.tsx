@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import { Log, useShell } from "mb-shell";
 import "./app.scss";
@@ -118,10 +118,9 @@ const Browser=({scope,fsMod,directoryTree}:{
     {openFile.data as string}
   </div>:null}<br/></>);
 };
-const Shell=({logs,setLogs,interpreter}:{
+const Shell=({logs,textAreaInputs}:{
   logs:ReturnType<typeof useShell>[0];
-  setLogs:ReturnType<typeof useShell>[1];
-  interpreter:ReturnType<typeof useShell>[2];
+  textAreaInputs:ReturnType<typeof useShell>[7];
 }):ReactElement=>{
   const scrollContainerRef=useRef<HTMLDivElement|null>(null);
   useEffect(()=>{if(scrollContainerRef.current) 
@@ -132,14 +131,7 @@ const Shell=({logs,setLogs,interpreter}:{
   },[logs]);
   return<><div ref={scrollContainerRef} className="shell">
     {logs.map((x,i)=><Log logObject={x} key={i}/>)}
-  </div><textarea onKeyDown={(e)=>{
-    if(e.key==="Enter"&&!e.shiftKey){
-      e.preventDefault();
-      e.stopPropagation();
-      try{interpreter(e.currentTarget.value,true);}catch{}
-      e.currentTarget.value="";
-    }
-  }}/></>;
+  </div><textarea {...textAreaInputs}/></>;
 };
 export const App=({}):ReactElement=>{
   const[
@@ -150,12 +142,13 @@ export const App=({}):ReactElement=>{
     scope,
     directoryTree,
     fsMod,
+    textAreaInputs
   ]=useShell();
   const[tab,setTab]=useState<number>(0);
   return<>
     <h1>mb-test</h1>
     <Browser {...{scope,fsMod,directoryTree}}/>
-    <Shell {...{logs,setLogs,interpreter}}/>
+    <Shell {...{logs,setLogs,interpreter,textAreaInputs}}/>
     <hr/>
     <span style={{minHeight:"1rem !important",display:"block"}}>
       dir tree: {fsMod.getNamesFromUuids(directoryTree).join("/")||"(empty...)"}

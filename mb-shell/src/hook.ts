@@ -1,6 +1,6 @@
 import { useAtom, useStore } from "jotai/react";
 import { logAtom, variableAtom } from "./store";
-import { ReactNode } from "react";
+import { ComponentProps, ComponentPropsWithoutRef, KeyboardEvent, KeyboardEventHandler, ReactNode } from "react";
 import { FilesystemObjectTypeError, FileNotFoundError, DirectoryNotFoundError, mbfs, useFileSystem, fsAtom as filesystemAtom } from "mb-fs2";
 import { getDefaultStore, SetStateAction } from "jotai";
 import { parseError, parsePath } from "./lib";
@@ -17,6 +17,7 @@ export const useShell=():[
   ReturnType<typeof useFileSystem>[1],//scope
   ReturnType<typeof useFileSystem>[2],//dirTree (in uuids)
   ReturnType<typeof useFileSystem>[3],//modifier functions
+  ComponentPropsWithoutRef<'textarea'>
 ]=>{
   const[logs,setLogs]=useAtom(logAtom);
   const[vars,setVars]=useAtom(variableAtom);
@@ -28,6 +29,37 @@ export const useShell=():[
   ]=useFileSystem();
   // const store=getDefaultStore();//no longer needed
   //filesystem is persistent but scope is not. Perfect for this 
+  const textAreaEvents={
+    onKeyDown:(e:KeyboardEvent<HTMLTextAreaElement>)=>{
+      if(e.ctrlKey){
+        switch(e.key){
+          case "c":
+            e.preventDefault();
+            e.stopPropagation();
+            if(e.shiftKey){
+              const start=e.currentTarget.selectionStart;
+              const end=e.currentTarget.selectionEnd;
+              let textToCopy=e.currentTarget.value;
+              if(start!==end)textToCopy=e.currentTarget.value.substring(start, end);
+              if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(textToCopy);
+              else{
+                e.currentTarget.select();
+                document.execCommand('copy');
+              }
+            }else{
+              //quit program
+            }
+          default:console.log(e.key);
+        }
+      }
+      if(e.key==="Enter"&&!e.shiftKey){
+        e.preventDefault();
+        e.stopPropagation();
+        try{interpreter(e.currentTarget.value,true);}catch{}
+        e.currentTarget.value="";
+      }
+    }
+  };
   const interpreter=(code:string,echo:boolean)=>{
     const commands=code.split(/;|\r?\n/);
     for(const command of commands){
@@ -57,5 +89,6 @@ export const useShell=():[
     scope,
     dirTree,
     mods,
+    textAreaEvents
   ];
 };

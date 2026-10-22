@@ -119,7 +119,7 @@ export const functionMapBase:{
     promise[0](0);
   },
   cat:(command,scope,mods,setLogs,promise,dirTree,sudo,filePath):void=>{
-    const parsedPath:string[]=parsePath(filePath,dirTree);
+    const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
       const newFileName=parsedPath.slice(-1)[0];
@@ -136,7 +136,7 @@ export const functionMapBase:{
     }
   },
   tac:(command,scope,mods,setLogs,promise,dirTree,sudo,filePath):void=>{
-    const parsedPath:string[]=parsePath(filePath,dirTree);
+    const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
       const newFileName=parsedPath.slice(-1)[0];
@@ -150,6 +150,52 @@ export const functionMapBase:{
       )[0]].data).split('\n').reverse().join('');
       setLogs(x=>[...x,{t:"l",m}]);
       promise[0](0);
+    }
+  },
+  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,newval,file)=>{
+    const parsedPath:string[]=parsePath(file,mods.getNamesFromUuids(dirTree));
+    if(parsedPath){
+      //path parsing
+      const newFilePath=parsedPath.slice(0,-1);
+      const newFileName=parsedPath.slice(-1)[0];
+      const newFilePathUUIDs=mods.getUuidsFromDirectoryNames(newFilePath);
+      const dir=mods.getDirectoryContents(newFilePathUUIDs).data;
+      const uuid:string=String(Object.keys(dir).find(x=>
+        dir[x].name===newFileName.split(".")[0]
+        &&(newFileName.split(".")[1]
+          ?(dir[x] as mbfs.File).type==newFileName.split(".")[1]
+          :true)));
+      //mod parsing
+      if(!dir[uuid])promise[1]({
+        name:"FileNotFoundError",
+        message:`file ${newFileName} as not found in /${newFilePath.join("/")}`
+      });
+      let metadata={...dir[uuid].metadata,};
+      const indexOfType:number=newval.indexOf("+")<0?newval.indexOf("-"):newval.indexOf("+");
+      const groupArr:string[]=newval[indexOfType]=="+"?newval.split("+"):newval.split("-")[0].split("");
+      const guestMod:boolean=groupArr.includes("g");
+      const userMod:boolean=groupArr.includes("u");
+      const adminMod:boolean=groupArr.includes("a");
+      console.log(groupArr,indexOfType)
+      if(newval[indexOfType]=="+"||newval[indexOfType]=="-"){
+        newval.split("").slice(indexOfType).forEach((x)=>{
+          switch(x){
+            case"r":
+              if(userMod)metadata.access.read.users=newval[indexOfType]=="+";
+              if(guestMod)metadata.access.read.guests=newval[indexOfType]=="+";
+              if(adminMod)metadata.access.read.administrators=newval[indexOfType]=="+";
+            break;
+            case"w":
+              if(userMod)metadata.access.write.users=newval[indexOfType]=="+";
+              if(guestMod)metadata.access.write.guests=newval[indexOfType]=="+";
+              if(adminMod)metadata.access.write.administrators=newval[indexOfType]=="+";
+            break;
+            case"x":metadata.typeof.executable=newval[indexOfType]=="+";break;
+            default:console.log("unknown param for chmod: "+x);
+          }
+        });
+      }
+      mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     }
   },
   rm:(_command,_scope,_mods,_setLogs,promise,_dirTree:string[],sudo,filePath:string):void=>{
