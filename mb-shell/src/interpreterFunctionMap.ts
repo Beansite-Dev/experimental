@@ -324,6 +324,8 @@ export const runShellCommand=(
         }
       }
       if(args.join(" ").match(/^[^=\s]+=\b.+\b$/g)){
+        // To achieve the ability to run commands like $(...), we need to use regex
+        // to match the pattern, then take the contents of the prenthasis and rerun runShellCommand()
         const variableDefArr=args[0].split("=");
         const name:string=variableDefArr[0];
         const value:string=[variableDefArr[1],...args.slice(1)].join(" ");
