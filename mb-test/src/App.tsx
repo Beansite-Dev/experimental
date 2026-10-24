@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import { Log, useShell } from "mb-shell";
 import "./app.scss";
