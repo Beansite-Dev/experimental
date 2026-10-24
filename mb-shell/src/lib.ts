@@ -1,8 +1,7 @@
 import { DirectoryNotFoundError } from "mb-fs2";
-//temp, likely will not reimplement since its been nothing but buggy since iplementation
 const parsePathSub=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
   if(!inputPath||inputPath.length<1||!inputPath.split("/"))throw new DirectoryNotFoundError(`Invalid directory string passed to parser`);
-  else if(inputPath.startsWith("C:/")||inputPath.startsWith("c:/"))return[...inputPath.slice(3).split("/")];
+  else if(inputPath.startsWith("C:/")||inputPath.startsWith("c:/"))return inputPath.slice(3).split("/");
   else if(inputPath.startsWith("~"))return["users","admin",...inputPath.split("/").slice(1)]; 
   else if(inputPath.startsWith("..")){
     const segments=inputPath.split("/").filter(s=>s.length>0);
@@ -15,12 +14,11 @@ const parsePathSub=(inputPath:string,currentWorkingDirectory:string[]):string[]=
     return[...cwd,...segments.slice(i)];
   }
   else if(inputPath.startsWith("./"))return[...currentWorkingDirectory,...inputPath.split("/").slice(1)];
-  else if(inputPath.startsWith("/"))return[...inputPath.split("/")];
+  else if(inputPath.startsWith("/"))return inputPath.split("/");
   else return[...currentWorkingDirectory,...inputPath.split("/")];
 };
 export const parsePath=(inputPath:string,currentWorkingDirectory:string[]):string[]=>{
-  try{return parsePathSub(inputPath,currentWorkingDirectory).filter(x=>x!=="");}
-  catch(e){throw e;}
+  return parsePathSub(inputPath,currentWorkingDirectory).filter(x=>x!=="");
 };
 export const parseError=(command:string,name:string,message:string):logs.LogType[]=>{
   return[

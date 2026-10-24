@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 import { v4 as uuidv4 } from 'uuid';
 import * as z from "zod";
-import { fa } from 'zod/locales';
+// import { fa } from 'zod/locales';
 //S=schema => only if name without s is taken
 export const userPermsS=z.object({
   administrators:z.boolean().default(false),

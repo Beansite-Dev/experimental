@@ -1,7 +1,7 @@
-import { DirectoryNotFoundError, mbfs, modTypes } from "mb-fs2";
+import { mbfs, modTypes } from "mb-fs2";
 import { clamp, getMinLength, lslFormatDateTime, parseError, parsePath } from "./lib";
-import { getDefaultStore, SetStateAction } from "jotai/vanilla";
-import { logAtom, mbsh } from "./store";
+import { SetStateAction } from "jotai/vanilla";
+import { mbsh } from "./store";
 import { useShell } from "./hook";
 import { parseLog } from "./logs";
 export const functionMapBase:{
@@ -233,7 +233,7 @@ export const functionMapBase:{
     });
     promise[0](0);
   },
-  whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](0)},
+  whoami:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],_sudo):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](0)},
   echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,...args:string[]):void=>{
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](0);
@@ -354,7 +354,6 @@ export const runShellCommand=(
       let parsedPath:{name:string;message:string;}|string[];
       try{parsedPath=parsePath(args[0],dirTree);}
       catch(e){parsedPath=e as {name:string;message:string;};}
-      console.warn(bin,"\,",binCommandPointer,"\n",parsedPath);
       if(
         binCommandPointer
         &&binCommandPointer.metadata.typeof.executable
@@ -400,7 +399,7 @@ export const runShellCommand=(
       sudo,
       ...args.slice(1)
     );
-  }).then(r=>{
+  }).then(()=>{
     if(!outputPath)return;
     if(line)captured.push(line);
     const now=new Date();

@@ -1,4 +1,4 @@
-import { useAtom, type PrimitiveAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { dir, file, fsAtom, type mbfs } from './atom.js';
 import { useState } from "react";
 import { DirectoryNotFoundError, FileNotFoundError, FilesystemObjectTypeError } from './exceptions.js';
