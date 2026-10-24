@@ -59,23 +59,15 @@ export const functionMapBase:{
           m:`${scope.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-${
             scope.data[key].metadata.typeof.directory
             ||scope.data[key].metadata.typeof.executable?"x":"-"}. `,
-        },{t:"l",
-          m:`1 `,
-        },{t:"l",
-          m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),
-        },{t:"l",
-          m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),
-        },{t:"l",
-          m:`${String(clamp(JSON.stringify(scope.data[key]).length,0,4096))}`.padEnd(5),
-        },{t:"l",
-          m:lslFormatDateTime(scope.data[key].metadata.date.modified).padEnd(13),
-        },{
-        t:"l",
-          ...scope.data[key].metadata.typeof.directory
-              ?{clr:"Cyan",bold:true}
-            :scope.data[key].metadata.typeof.executable
-              ?{clr:"BrightGreen",bold:true}
-            :{},
+        },{t:"l",m:`1 `,},
+        {t:"l",m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
+        {t:"l",m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
+        {t:"l",m:`${String(clamp(JSON.stringify(scope.data[key]).length,0,4096))}`.padEnd(5),},
+        {t:"l",m:lslFormatDateTime(scope.data[key].metadata.date.modified).padEnd(13),},
+        {
+          t:"l",
+          ...scope.data[key].metadata.typeof.directory?{clr:"Cyan",bold:true}
+            :scope.data[key].metadata.typeof.executable?{clr:"BrightGreen",bold:true}:{},
           m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`,
         },
         ...(Object.keys(scope.data).length-1>i?[{t:"nl"}as logs.LogType]:[])
@@ -323,14 +315,33 @@ export const runShellCommand=(
           });
         }
       }
-      if(args.join(" ").match(/^[^=\s]+=\b.+\b$/g)){
-        // To achieve the ability to run commands like $(...), we need to use regex
-        // to match the pattern, then take the contents of the prenthasis and rerun runShellCommand()
-        const variableDefArr=args[0].split("=");
-        const name:string=variableDefArr[0];
-        const value:string=[variableDefArr[1],...args.slice(1)].join(" ");
-        setVars(x=>[...x,{name,value}]);
-        resolve(0);
+      if(args.join(" ").match(/^[^=\s]+=.+$/)){
+        const eq:number=args[0].indexOf("=");
+        const name:string=args[0].slice(0,eq);
+        const raw:string=[args[0].slice(eq+1),...args.slice(1)].join(" ");
+        const subs:RegExpMatchArray[]=[...raw.matchAll(/\$\(([^)]+)\)/g)];
+        Promise.all(subs.map(m=>{
+          const out:string[]=[];
+          let cur:string="";
+          let seen:logs.LogType[]=logs;
+          return runShellCommand(m[1],scope,mods,logs,u=>{
+            const next=typeof u==="function"?u(seen):u;
+            for(const e of next.slice(seen.length)){
+              if(e.t==="nl"){out.push(cur);cur="";}
+              else if("m" in e)cur+=e.m??"";
+            }
+            seen=next;
+          },dirTree,interpreter,vars,setVars).then(()=>{
+            out.push(cur);
+            return out.join("\n").trimEnd();
+          });
+        })).then(outs=>{
+          let i:number=0;
+          const value:string=raw.replace(/\$\(([^)]+)\)/g,()=>outs[i++]);
+          setVars(x=>[...x.filter(v=>v.name!==name),{name,value}]);
+          resolve(0);
+        });
+        return;
       }
       const bin:mbfs.Directory=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(["bin"]));
       const binCommandPointer:mbfs.File|undefined=bin.data[Object.keys(bin.data)
