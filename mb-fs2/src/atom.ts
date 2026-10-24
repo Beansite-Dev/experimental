@@ -2,7 +2,6 @@ import { atom } from 'jotai';
 import { v4 as uuidv4 } from 'uuid';
 import * as z from "zod";
 import { applications } from './applications.js';
-//S=schema => only if name without s is taken
 export const userPermsS=z.object({
   administrators:z.boolean().default(false),
   users:z.boolean().default(false),
@@ -79,5 +78,3 @@ export const fsAtom=atom<mbfs.Directory>(mkDir("root",{
   },meta("root",true,true)),
   [uuidv4()]:mkFile("README","txt","string or blob go here",meta("administrator",false,false)),
 },meta("system",true,true,false,true)));
-//!incorrect code: directory tree should be based in separate calls to the hook, not global
-// export const directoryTreeAtom=atom<string[]>([]);
