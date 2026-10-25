@@ -2,6 +2,7 @@ import { mbfs, modTypes } from "mb-fs2";
 import { clamp, getMinLength, lslFormatDateTime, parsePath } from "./lib";
 import { SetStateAction } from "jotai/vanilla";
 import { parseLog } from "./logs";
+import { OperationRequiresRecursiveFlagError, OperationRequiresRootError } from "./exceptions";
 export const functionMapBase:{
   [key:string]:((
     command:string,
@@ -188,16 +189,19 @@ export const functionMapBase:{
       mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     }
   },
-  rm:(_command,_scope,_mods,_setLogs,promise,_dirTree:string[],sudo,filePath:string):void=>{
+  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,filePath:string,...flags):void=>{
+    const path:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
+    const parentName:string[]=path.slice(0,-1);
+    const childName:string=path.slice(-1)[0];
+    const parent=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(parentName));
+    const childUuid=Object.keys(parent.data).filter(x=>parent.data[x].name===childName)[0];
+    if((!parent.data[childUuid].metadata.access.write.users
+    ||parent.data[childUuid].metadata.typeof.system)&&!sudo)
+      throw new OperationRequiresRootError(`Operation requires root`);
+    if(parent.data[childUuid].metadata.typeof.directory&&!flags.includes("-r"))
+      throw new OperationRequiresRecursiveFlagError(`Operation requires a recursive flags`);
+    mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
     promise[0](0);
-    
-    //!old rm, fileName => filePath now
-    // const trimmedFileName:string=fileName.split(".")[0];
-    // try{
-    //   mods.deleteFilesystemObject(dirTree,mods.getUuidsFromFileNames([...dirTree,trimmedFileName]).slice(-1)[0]);
-    // }catch(error:FileNotFoundError|DirectoryNotFoundError|FilesystemObjectTypeError|any) {
-    //   setLogs(x=>[...x,...parseError(command,error.name,error.message)]);
-    // }
   },
   mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,name:string):void=>{
     mods.createDirectory(dirTree,{

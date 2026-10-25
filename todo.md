@@ -12,7 +12,6 @@
 
 
 ## mb-shell
-- FIX RM !!
 - Add interactable text support using `<button/>`
 - Add text inputs using `<input/>`
 - Add keyboard support to send keyboard inputs as text characters
