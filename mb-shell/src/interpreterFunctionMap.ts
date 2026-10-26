@@ -189,7 +189,9 @@ export const functionMapBase:{
       mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     }
   },
-  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,filePath:string,...flags):void=>{
+  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,...args:string[]):void=>{
+    const filePath:string=args.filter(x=>!x.startsWith("-"))[0];
+    const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
     const path:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     const parentName:string[]=path.slice(0,-1);
     const childName:string=path.slice(-1)[0];
@@ -198,7 +200,7 @@ export const functionMapBase:{
     if((!parent.data[childUuid].metadata.access.write.users
     ||parent.data[childUuid].metadata.typeof.system)&&!sudo)
       throw new OperationRequiresRootError(`Operation requires root`);
-    if(parent.data[childUuid].metadata.typeof.directory&&!flags.includes("-r"))
+    if(parent.data[childUuid].metadata.typeof.directory&&!flags.includes("r"))
       throw new OperationRequiresRecursiveFlagError(`Operation requires a recursive flags`);
     mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
     promise[0](0);
