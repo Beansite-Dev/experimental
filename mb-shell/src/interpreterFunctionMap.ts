@@ -28,7 +28,7 @@ export const functionMapBase:{
       if(debug)console.warn("=> cd res: ",f,parsed);
       mods.enterDirectoryFromPath(parsed);
       setLogs(x=>[...x.slice(0,-2),
-        {t:"l",m:`c:/${f.join("/")} > ${command}`},{t:"nl"},
+        {t:"l",m:`/${f.join("/")} > ${command}`},{t:"nl"},
       ]);
       promise[0](0);
     }catch(e){

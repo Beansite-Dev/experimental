@@ -118,8 +118,10 @@ const Browser=({scope,fsMod,directoryTree}:{
     {openFile.data as string}
   </div>:null}<br/></>);
 };
-const Shell=({logs,textAreaInputs}:{
+const Shell=({logs,mods,dirTree,textAreaInputs}:{
   logs:ReturnType<typeof useShell>[0];
+  dirTree:ReturnType<typeof useShell>[5];
+  mods:ReturnType<typeof useShell>[6];
   textAreaInputs:ReturnType<typeof useShell>[7];
 }):ReactElement=>{
   const scrollContainerRef=useRef<HTMLDivElement|null>(null);
@@ -129,9 +131,11 @@ const Shell=({logs,textAreaInputs}:{
       behavior:'smooth',
     });
   },[logs]);
-  return<><div ref={scrollContainerRef} className="shell">
+  return<div ref={scrollContainerRef} className="shell">
     {logs.map((x,i)=><Log logObject={x} key={i}/>)}
-  </div><textarea {...textAreaInputs}/></>;
+    <br/><br/>/{mods.getNamesFromUuids(dirTree)}&nbsp;{">"}&nbsp;
+    <textarea {...textAreaInputs}/><br/>
+  </div>;
 };
 export const App=({}):ReactElement=>{
   const[
@@ -148,7 +152,7 @@ export const App=({}):ReactElement=>{
   return<>
     <h1>mb-test</h1>
     <Browser {...{scope,fsMod,directoryTree}}/>
-    <Shell {...{logs,setLogs,interpreter,textAreaInputs}}/>
+    <Shell {...{logs,mods:fsMod,dirTree:directoryTree,textAreaInputs}}/>
     <hr/>
     <span style={{minHeight:"1rem !important",display:"block"}}>
       dir tree: {fsMod.getNamesFromUuids(directoryTree).join("/")||"(empty...)"}

@@ -131,12 +131,13 @@ body {
   &,*,* *{flex: 0;}
 }
 textarea {
-  width: 35rem;
-  min-height: 2rem;
-  height: fit-content;
+  min-width: 10rem;
+  width: fit-content;
+  min-height: .75rem;
+  height: .75rem;
+  line-height: 1;
   background: #151515;
-  border: 1px solid #909090 !important;
-  border-top: none !important;
+  border: none !important;
   color: #fff;
   outline: none;
   font-family: monospace;
