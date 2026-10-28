@@ -65,7 +65,7 @@ export const useShell=():[
       //temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(echo)setLogs(x=>[...x,
         ...(logs.length>0?[{t:"nl"},{t:"nl"},]as logs.LogType[]:[]),
-        {t:"l",m:`c:/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}
+        {t:"l",m:`/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}
       ]);
       runShellCommand(
         command,
