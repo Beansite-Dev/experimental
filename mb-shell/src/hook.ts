@@ -1,5 +1,5 @@
 import { useAtom } from "jotai/react";
-import { logAtom, variableAtom } from "./store";
+import { keyboardInputBufferAtom, logAtom, variableAtom } from "./store";
 import { ComponentPropsWithoutRef, KeyboardEvent } from "react";
 import { useFileSystem } from "mb-fs2";
 import { SetStateAction } from "jotai";
@@ -20,6 +20,7 @@ export const useShell=():[
 ]=>{
   const[logs,setLogs]=useAtom(logAtom);
   const[vars,setVars]=useAtom(variableAtom);
+  const[keyboardInputBuffer,setKeyboradInputBuffer]=useAtom(keyboardInputBufferAtom);
   const[
     filesystem,
     scope,
@@ -30,6 +31,8 @@ export const useShell=():[
   //filesystem is persistent but scope is not. Perfect for this 
   const textAreaEvents={
     onKeyDown:(e:KeyboardEvent<HTMLTextAreaElement>)=>{
+      setKeyboradInputBuffer(x=>[...x,e.key]);
+      // console.log("keyboard input buffer: ",keyboardInputBuffer);
       if(e.ctrlKey){
         switch(e.key){
           case "c":

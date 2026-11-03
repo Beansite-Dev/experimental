@@ -12,3 +12,4 @@ export const variableAtom=atom<mbsh.ShellVariable[]>([
     value:"/home/administrator/"
   }
 ]);
+export const keyboardInputBufferAtom=atom<string[]>([]);
