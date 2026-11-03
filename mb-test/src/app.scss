@@ -134,7 +134,8 @@ textarea {
   min-width: 10rem;
   width: fit-content;
   min-height: .75rem;
-  height: .75rem;
+  height: 1rem;
+  overflow: hidden;
   line-height: 1;
   background: #151515;
   border: none !important;
@@ -142,4 +143,5 @@ textarea {
   outline: none;
   font-family: monospace;
   font-size: .75rem;
+  resize: none;
 }

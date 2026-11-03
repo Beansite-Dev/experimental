@@ -9,14 +9,14 @@
 }
 */
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { InvalidLogObjectError } from './exceptions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //@ts-ignore
 import "./logStyles.scss";
 declare global{
   namespace logs{
-    interface LogBase{t:"l"|"nl"|"i";}
+    interface LogBase{t:"l"|"nl"|"i"|"c";}
     type Color="Black"|"BrightBlack"|"Gray"|"DarkGray"|"BrightGray"|
       "White"|"BrightWhite"|"Blue"|"DarkBlue"|"BrightBlue"|
       "Green"|"DarkGreen"|"BrightGreen"|"Cyan"|"DarkCyan"|"BrightCyan"|
@@ -31,6 +31,10 @@ declare global{
       t:"i";
       i:IconDefinition;
     }
+    interface Component extends LogMessageBase {
+      t:"c";
+      c:ReactElement;
+    }
     interface NewLine extends LogBase {t:"nl";}
     interface LogMessage extends LogMessageBase {
       t:"l";
@@ -39,7 +43,7 @@ declare global{
       italic?:boolean;
       underline?:boolean;
     }
-    type LogType=logs.LogMessage|logs.Icon|logs.NewLine;
+    type LogType=logs.LogMessage|logs.Icon|logs.NewLine|logs.Component;
   }
 };
 const colorMap:Record<logs.Color,true>={
@@ -88,6 +92,7 @@ export const Log=({logObject}:{
   logObject:logs.LogType;
 }):ReactElement=>{
   switch(logObject.t){
+    case "c":return logObject.c;
     case "l":return<span 
       className={`
         logMessage 

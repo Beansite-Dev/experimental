@@ -36,40 +36,49 @@ export const functionMapBase:{
       promise[1](e);
     };
   },
-  ls:(_command,scope,_mods,setLogs,promise,dirTree:string[],sudo,...args:string[]):void=>{
+  read:(command,scope,mods,setLogs,promise,dirTree,sudo,...args:string[])=>{
+    // > potential usage
+    // read -p "Enter your name: " user_name
+    // echo "Hello, $user_name!"
+  },
+  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,...args:string[]):void=>{
     // new ls post rework
-    const minObjLen:number=getMinLength(Object.keys(scope.data).map(x=>`${scope.data[x].name}${!scope.data[x].metadata.typeof.directory?"."+(scope.data[x] as mbfs.File).type:""}`),1);
-    const lMinNameLen:number=getMinLength(Object.keys(scope.data).map(x=>scope.data[x].metadata.originalCreator),1);
-    if(args.length==0){setLogs(x=>[...x,
-      ...Object.keys(scope.data).map((key):logs.LogType=>({
+    const filePath:string=args.filter(x=>!x.startsWith("-"))[0]||"./";
+    const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
+    const path:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
+    const dir=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(path));
+    const minObjLen:number=getMinLength(Object.keys(dir.data).map(x=>`${dir.data[x].name}${!dir.data[x].metadata.typeof.directory?"."+(dir.data[x] as mbfs.File).type:""}`),1);
+    const lMinNameLen:number=getMinLength(Object.keys(dir.data).map(x=>dir.data[x].metadata.originalCreator),1);
+    if(flags.length==0){setLogs(x=>[...x,
+      ...Object.keys(dir.data).map((key):logs.LogType=>({
         t:"l",
-        ...scope.data[key].metadata.typeof.directory
+        ...dir.data[key].metadata.typeof.directory
             ?{clr:"Cyan",bold:true}
-          :scope.data[key].metadata.typeof.executable
+          :dir.data[key].metadata.typeof.executable
             ?{clr:"BrightGreen",bold:true}
           :{},
-        m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`.padEnd(minObjLen),
+        m:`${dir.data[key].name}${dir.data[key].metadata.typeof.directory?"":`.${(dir.data[key]as mbfs.File).type}`}`.padEnd(minObjLen),
       })),
     ]);promise[0](0);}
-    if(args.includes("-l")){setLogs(x=>[...x,
-      {t:"l",m:`total ${JSON.stringify(scope).length} bytes`},{t:"nl"},
-      ...Object.keys(scope.data).map((key,i):logs.LogType[]=>([
+    if(flags.includes("l")){setLogs(x=>[...x,
+      {t:"l",m:`total ${JSON.stringify(dir).length} bytes`},{t:"nl"},
+      ...Object.keys(dir.data).map((key,i):logs.LogType[]=>([
         {t:"l",
-          m:`${scope.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-${
-            scope.data[key].metadata.typeof.directory
-            ||scope.data[key].metadata.typeof.executable?"x":"-"}. `,
+          m:`${dir.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-${
+            dir.data[key].metadata.typeof.directory
+            ||dir.data[key].metadata.typeof.executable?"x":"-"}. `,
         },{t:"l",m:`1 `,},
-        {t:"l",m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
-        {t:"l",m:`${scope.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
-        {t:"l",m:`${String(clamp(JSON.stringify(scope.data[key]).length,0,4096))}`.padEnd(5),},
-        {t:"l",m:lslFormatDateTime(scope.data[key].metadata.date.modified).padEnd(13),},
+        {t:"l",m:`${dir.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
+        {t:"l",m:`${dir.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
+        {t:"l",m:`${String(clamp(JSON.stringify(dir.data[key]).length,0,4096))}`.padEnd(5),},
+        {t:"l",m:lslFormatDateTime(dir.data[key].metadata.date.modified).padEnd(13),},
         {
           t:"l",
-          ...scope.data[key].metadata.typeof.directory?{clr:"Cyan",bold:true}
-            :scope.data[key].metadata.typeof.executable?{clr:"BrightGreen",bold:true}:{},
-          m:`${scope.data[key].name}${scope.data[key].metadata.typeof.directory?"":`.${(scope.data[key]as mbfs.File).type}`}`,
+          ...dir.data[key].metadata.typeof.directory?{clr:"Cyan",bold:true}
+            :dir.data[key].metadata.typeof.executable?{clr:"BrightGreen",bold:true}:{},
+          m:`${dir.data[key].name}${dir.data[key].metadata.typeof.directory?"":`.${(dir.data[key]as mbfs.File).type}`}`,
         },
-        ...(Object.keys(scope.data).length-1>i?[{t:"nl"}as logs.LogType]:[])
+        ...(Object.keys(dir.data).length-1>i?[{t:"nl"}as logs.LogType]:[])
       ])).flat(),
     ]);promise[0](0);}
   },

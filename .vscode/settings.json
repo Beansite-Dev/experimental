@@ -12,7 +12,7 @@
   "debug.console.fontSize": 16,
   "window.commandCenter": false,
   // "workbench.preferredDarkColorTheme": "GitHub Dark Dimmed",
-  "workbench.preferredLightColorTheme": "Google Light",
+  "workbench.preferredLightColorTheme": "GitHub Dark Dimmed",
   // "workbench.iconTheme": "material-icon-theme",
   "window.autoDetectColorScheme": true,
   "workbench.layoutControl.enabled": false,
