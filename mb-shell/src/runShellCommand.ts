@@ -144,6 +144,8 @@ export const runShellCommand=(
       [resolve,reject],
       dirTree,
       sudo,
+      vars,
+      setVars,
       ...args.slice(1)
     );
   }).then(()=>{
