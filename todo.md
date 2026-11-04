@@ -13,6 +13,7 @@
 
 ## mb-shell
 - Add text inputs using `<input/>` or using a buffer that gets appended to by keyboard inputs
+- Allow `&` and `&&` to work
 - Add keyboard support to send keyboard inputs as text characters
 - Allow commands to receive keyboard shortcuts like ctrl+c to quit (IN PROGRESS)
 - use `.toml` files under `/.config` or `~/.config`
