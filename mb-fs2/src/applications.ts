@@ -36,8 +36,7 @@ echo "\\bgBrightYellow   \\End";
 echo "\\bgBrightGreen   \\End";
 echo "\\bgBrightCyan   \\End";
 echo "\\bgBrightBlue   \\End";
-echo "\\bgBrightMagenta   \\End";
-echo "\\n\\n";`,
+echo "\\bgBrightMagenta   \\End";`,
     metadata:{
       access:{
         read:{
