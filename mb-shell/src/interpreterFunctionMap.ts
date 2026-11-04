@@ -35,6 +35,9 @@ export const functionMapBase:{
     ]);
     promise[0](0);
   },
+  wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,time)=>{
+    setTimeout(()=>promise[0](0),parseInt(time));
+  },
   read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,...args:string[])=>{
     // > potential usage
     // read -p "Enter your name: " user_name

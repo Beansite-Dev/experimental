@@ -1,6 +1,6 @@
 import { useAtom } from "jotai/react";
 import { keyboardInputBufferAtom, keyboardInputBufferDerivedAtom, logAtom, variableAtom } from "./store";
-import { ComponentPropsWithoutRef, KeyboardEvent } from "react";
+import { ComponentPropsWithoutRef, KeyboardEvent, useState } from "react";
 import { useFileSystem } from "mb-fs2";
 import { SetStateAction } from "jotai";
 import { runShellCommand } from "./runShellCommand";
@@ -16,10 +16,12 @@ export const useShell=():[
   ReturnType<typeof useFileSystem>[1],//scope
   ReturnType<typeof useFileSystem>[2],//dirTree (in uuids)
   ReturnType<typeof useFileSystem>[3],//modifier functions
-  ComponentPropsWithoutRef<'textarea'>
+  ComponentPropsWithoutRef<'textarea'>,
+  boolean
 ]=>{
   const[logs,setLogs]=useAtom(logAtom);
   const[vars,setVars]=useAtom(variableAtom);
+  const[running,setRunning]=useState<boolean>(false);
   const[keyboardInputBuffer,setKeyboardInputBuffer]=useAtom(keyboardInputBufferDerivedAtom);
   const[
     filesystem,
@@ -70,6 +72,7 @@ export const useShell=():[
         ...(logs.length>0?[{t:"nl"},{t:"nl"},]as logs.LogType[]:[]),
         {t:"l",m:`/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}
       ]);
+      setRunning(true);
       runShellCommand(
         command,
         scope,
@@ -81,7 +84,7 @@ export const useShell=():[
         vars,
         setVars,
         keyboardInputBuffer,
-      );
+      ).then(()=>setRunning(false));
     };
   };
   return[
@@ -92,6 +95,7 @@ export const useShell=():[
     scope,
     dirTree,
     mods,
-    textAreaEvents
+    textAreaEvents,
+    running
   ];
 };

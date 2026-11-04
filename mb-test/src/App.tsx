@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import { Log, useShell } from "mb-shell";
 import "./app.scss";
@@ -118,11 +118,12 @@ const Browser=({scope,fsMod,directoryTree}:{
     {openFile.data as string}
   </div>:null}<br/></>);
 };
-const Shell=({logs,mods,dirTree,textAreaInputs}:{
+const Shell=({logs,mods,dirTree,textAreaInputs,running}:{
   logs:ReturnType<typeof useShell>[0];
   dirTree:ReturnType<typeof useShell>[5];
   mods:ReturnType<typeof useShell>[6];
   textAreaInputs:ReturnType<typeof useShell>[7];
+  running:boolean;
 }):ReactElement=>{
   const scrollContainerRef=useRef<HTMLDivElement|null>(null);
   useEffect(()=>{if(scrollContainerRef.current) 
@@ -133,8 +134,10 @@ const Shell=({logs,mods,dirTree,textAreaInputs}:{
   },[logs]);
   return<div ref={scrollContainerRef} className="shell">
     {logs.map((x,i)=><Log logObject={x} key={i}/>)}
-    <br/><br/>/{mods.getNamesFromUuids(dirTree)}&nbsp;{">"}&nbsp;
-    <textarea {...textAreaInputs}/><br/>
+    <div style={{visibility:running?"hidden":"visible"}}>
+      <br/><br/>/{mods.getNamesFromUuids(dirTree)}&nbsp;{">"}&nbsp;
+      <textarea {...textAreaInputs}/><br/>
+    </div>
   </div>;
 };
 export const App=({}):ReactElement=>{
@@ -146,13 +149,14 @@ export const App=({}):ReactElement=>{
     scope,
     directoryTree,
     fsMod,
-    textAreaInputs
+    textAreaInputs,
+    running
   ]=useShell();
   const[tab,setTab]=useState<number>(0);
   return<>
     <h1>mb-test</h1>
     <Browser {...{scope,fsMod,directoryTree}}/>
-    <Shell {...{logs,mods:fsMod,dirTree:directoryTree,textAreaInputs}}/>
+    <Shell {...{logs,mods:fsMod,dirTree:directoryTree,textAreaInputs,running}}/>
     <hr/>
     <span style={{minHeight:"1rem !important",display:"block"}}>
       dir tree: {fsMod.getNamesFromUuids(directoryTree).join("/")||"(empty...)"}
