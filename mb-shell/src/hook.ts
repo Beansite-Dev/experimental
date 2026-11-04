@@ -65,7 +65,7 @@ export const useShell=():[
     }
   };
   const interpreter=(code:string,echo:boolean)=>{
-    const commands=code.split(/;|\r?\n/);
+    const commands=code.split(/;|\r?\n| && /);
     for(const command of commands){
       //temp, will likely add custom feature here instead. maybe even be like ohmyposh
       if(echo)setLogs(x=>[...x,
