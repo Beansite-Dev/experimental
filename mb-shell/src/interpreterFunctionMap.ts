@@ -15,10 +15,11 @@ export const functionMapBase:{
     sudo:boolean,
     vars:mbsh.ShellVariable[],
     setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
+    keyboardInputBuffer:{getValue:()=>string[]},
     ...args:string[]
   )=>void)|void;
 }={
-  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,inputPath:string):void=>{
+  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,inputPath:string):void=>{
     //f=arrOfFileNames (shortened cuz my keyboard is ass)
     let f:string[]=[];
     let parsed:string[];
@@ -34,13 +35,13 @@ export const functionMapBase:{
     ]);
     promise[0](0);
   },
-  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,...args:string[])=>{
+  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,...args:string[])=>{
     // > potential usage
     // read -p "Enter your name: " user_name
     // echo "Hello, $user_name!"
     
   },
-  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,...args:string[]):void=>{
+  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
     // new ls post rework
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0]||"./";
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
@@ -82,7 +83,7 @@ export const functionMapBase:{
     ]);promise[0](0);}
   },
   cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](0);},
-  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,fileName:string):void=>{
+  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,fileName:string):void=>{
     const name=fileName.split(".")[0];
     const type=fileName.split(".")[1]||"txt";
     mods.createFile(dirTree,{
@@ -117,7 +118,7 @@ export const functionMapBase:{
     });
     promise[0](0);
   },
-  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,filePath):void=>{
+  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
@@ -134,7 +135,7 @@ export const functionMapBase:{
       promise[0](0);
     }
   },
-  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,filePath):void=>{
+  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
@@ -151,7 +152,7 @@ export const functionMapBase:{
       promise[0](0);
     }
   },
-  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,newval,file)=>{
+  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,newval,file)=>{
     const parsedPath:string[]=parsePath(file,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       //path parsing
@@ -197,7 +198,7 @@ export const functionMapBase:{
       mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     }
   },
-  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,...args:string[]):void=>{
+  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0];
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
     const path:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
@@ -213,7 +214,7 @@ export const functionMapBase:{
     mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
     promise[0](0);
   },
-  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,name:string):void=>{
+  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,name:string):void=>{
     mods.createDirectory(dirTree,{
       name,
       data:{},
@@ -246,7 +247,7 @@ export const functionMapBase:{
     promise[0](0);
   },
   whoami:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](0)},
-  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,...args:string[]):void=>{
+  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](0);
   }
@@ -262,12 +263,13 @@ export const functionMap:Record<string,(
   sudo:boolean,
   vars:mbsh.ShellVariable[],
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
+  keyboardInputBuffer:{getValue:()=>string[]},
   ...args:string[]
 )=>void>={
   ...functionMapBase,
   "":()=>{},
   dir: functionMapBase.ls!,
   clear: functionMapBase.cls!,
-  "ll":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,"-l"),
-  "cd..":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,".."),
+  "ll":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,"-l"),
+  "cd..":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,".."),
 };

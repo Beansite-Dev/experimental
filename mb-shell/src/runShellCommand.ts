@@ -14,6 +14,7 @@ export const runShellCommand=(
   interpreter:ReturnType<typeof useShell>[2],
   vars:mbsh.ShellVariable[],
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
+  keyboardInputBuffer:{getValue:()=>string[]},
 ):Promise<void>=>{
   const parsedCommand:string[]=(command.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
@@ -35,6 +36,8 @@ export const runShellCommand=(
   };
   return new Promise<unknown>((resolve,reject)=>{
     if(!args[0])resolve(0);
+    // > ex usage of keyboardInputBuffer getter func
+    // console.log("recieved value from promise",keyboardInputBuffer.getValue());
     if(iOfRedirOp===0)return reject({
       name:"InvalidRedirectOperatorUsage",
       message:"blank commands cannot be passed to redirect operators",
@@ -78,7 +81,7 @@ export const runShellCommand=(
               else if("m" in e)cur+=e.m??"";
             }
             seen=next;
-          },dirTree,interpreter,vars,setVars).then(()=>{
+          },dirTree,interpreter,vars,setVars,keyboardInputBuffer).then(()=>{
             out.push(cur);
             return out.join("\n").trimEnd();
           });
@@ -146,6 +149,7 @@ export const runShellCommand=(
       sudo,
       vars,
       setVars,
+      keyboardInputBuffer,
       ...args.slice(1)
     );
   }).then(()=>{
