@@ -131,10 +131,10 @@ body {
   &,*,* *{flex: 0;}
 }
 textarea {
-  min-width: 10rem;
-  width: fit-content;
+  width: 100% !important;
+  flex-grow: 1 !important;
   min-height: .75rem;
-  height: 1rem;
+  height: auto;
   overflow: hidden;
   line-height: 1;
   background: #151515;
@@ -144,4 +144,11 @@ textarea {
   font-family: monospace;
   font-size: .75rem;
   resize: none;
+}
+.shellInputWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-direction: row;
 }

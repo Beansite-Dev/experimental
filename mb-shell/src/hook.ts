@@ -1,9 +1,10 @@
 import { useAtom } from "jotai/react";
-import { keyboardInputBufferAtom, keyboardInputBufferDerivedAtom, logAtom, variableAtom } from "./store";
+import { keyboardInputBufferAtom, keyboardInputBufferDerivedAtom, logAtom, mbsh, variableAtom } from "./store";
 import { ComponentPropsWithoutRef, KeyboardEvent, useState } from "react";
 import { useFileSystem } from "mb-fs2";
 import { SetStateAction } from "jotai";
 import { runShellCommand } from "./runShellCommand";
+import { parseShell } from "./lib";
 // idea is, a person would wrap their function in the provider
 // and then use the useShell hook. Then the user can run the
 // interpreter function and it will interpret their shell
@@ -64,27 +65,34 @@ export const useShell=():[
       }
     }
   };
-  const interpreter=(code:string,echo:boolean)=>{
-    const commands=code.split(/;|\r?\n| && /);
+  const interpreter=async(code:string,echo:boolean)=>{
+    // const commands=code.split(/;|\r?\n| && /);
+    const commands:mbsh.ShellCommand[][]=parseShell(code);
     for(const command of commands){
-      //temp, will likely add custom feature here instead. maybe even be like ohmyposh
-      if(echo)setLogs(x=>[...x,
-        ...(logs.length>0?[{t:"nl"},{t:"nl"},]as logs.LogType[]:[]),
-        {t:"l",m:`/${mods.getNamesFromUuids(dirTree).join("/")} > ${command}`},{t:"nl"}
-      ]);
-      setRunning(true);
-      runShellCommand(
-        command,
-        scope,
-        mods,
-        logs,
-        setLogs,
-        dirTree,
-        interpreter,
-        vars,
-        setVars,
-        keyboardInputBuffer,
-      ).then(()=>setRunning(false));
+      console.log(command);
+      command.forEach(sub=>{
+        if(echo)setLogs(x=>[...x,
+          {t:"nl"},
+          ...(sub.invoker===""||!((sub.i||0)>0)
+            ?[{t:"nl"},{t:"l",m:`/${mods.getNamesFromUuids(dirTree).join("/")} > ${sub.commandOfOrigin}`},{t:"nl"}]
+            :[]
+          )as logs.LogType[],
+        ]);
+        //temp, will likely add custom feature here instead. maybe even be like ohmyposh
+        setRunning(true);
+        runShellCommand(
+          sub,
+          scope,
+          mods,
+          logs,
+          setLogs,
+          dirTree,
+          interpreter,
+          vars,
+          setVars,
+          keyboardInputBuffer,
+        ).then(()=>setRunning(false));
+      });
     };
   };
   return[

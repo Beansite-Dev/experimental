@@ -5,7 +5,7 @@ import { useShell } from "./hook";
 import { mbsh } from "./store";
 import { functionMap } from "./interpreterFunctionMap";
 export const runShellCommand=(
-  command:string,
+  command:mbsh.ShellCommand,
   scope:mbfs.Directory,
   mods:modTypes,
   logs:logs.LogType[],
@@ -16,7 +16,7 @@ export const runShellCommand=(
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   keyboardInputBuffer:{getValue:()=>string[]},
 ):Promise<void>=>{
-  const parsedCommand:string[]=(command.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
+  const parsedCommand:string[]=(command.subcommand.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
   let args:string[]=iOfRedirOp>0?parsedCommand.slice(0,iOfRedirOp):parsedCommand;
   let sudo:boolean=false;
@@ -74,7 +74,11 @@ export const runShellCommand=(
           const out:string[]=[];
           let cur:string="";
           let seen:logs.LogType[]=logs;
-          return runShellCommand(m[1],scope,mods,logs,u=>{
+          return runShellCommand({
+            commandOfOrigin:command.commandOfOrigin,
+            subcommand:m[1],
+            invoker:"substitution",
+          },scope,mods,logs,u=>{
             const next=typeof u==="function"?u(seen):u;
             for(const e of next.slice(seen.length)){
               if(e.t==="nl"){out.push(cur);cur="";}
@@ -140,7 +144,7 @@ export const runShellCommand=(
       });
     }
     fn(
-      command,
+      command.subcommand,
       scope,
       mods,
       setLogsWithLogger,
@@ -176,6 +180,6 @@ export const runShellCommand=(
     });
   }).catch(e=>{
     const err=e as {name:string;message:string};
-    setLogs(x=>[...x,{t:"nl"},...parseError(command,err.name,err.message),]);
+    setLogs(x=>[...x,{t:"nl"},...parseError(command.commandOfOrigin,err.name,err.message),]);
   });
 };

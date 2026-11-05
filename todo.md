@@ -13,12 +13,6 @@
 
 ## mb-shell
 - Add text inputs using `<input/>` or using a buffer that gets appended to by keyboard inputs
-- Allow `&` and `&&` to work
-- instead of directly splitting by `;`,` && `,`\n`, make it create new objects with special metadata that get passed to the shell runner function.
-  - The object should looke like this:
-    - `{command:"ls",invokeType:""} //from "ls" | Its on its own line or seperated by a semicolon`
-    - `{command:"neofetch",invokeType:"&",i:0} //from "neofetch & ll"`
-    - `{command:"ll",invokeType:"&",i:1} //from "neofetch & ll"`
 - Add keyboard support to send keyboard inputs as text characters
 - Allow commands to receive keyboard shortcuts like ctrl+c to quit (IN PROGRESS)
 - use `.toml` files under `/.config` or `~/.config`

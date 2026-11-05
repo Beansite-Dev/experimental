@@ -5,6 +5,24 @@ export declare namespace mbsh {
     name:string;
     value:any;
   }
+  interface ShellCommandBase {
+    commandOfOrigin:string;
+    subcommand:string;
+    invoker:string;
+    i?:number;
+  }
+  interface StandardShellCommand extends ShellCommandBase{invoker:"";}
+  interface NewLineShellCommand extends ShellCommandBase{invoker:"newline";}
+  interface SingleAmpersandCommand extends ShellCommandBase{invoker:"&";}
+  interface DoubleAmpersandCommand extends ShellCommandBase{invoker:"&&";}
+  interface FileOriginShellCommand extends ShellCommandBase{invoker:"file";}
+  interface SubstitutionOriginShellCommand extends ShellCommandBase{invoker:"substitution";}
+  type ShellCommand=StandardShellCommand
+    |FileOriginShellCommand
+    |NewLineShellCommand
+    |SubstitutionOriginShellCommand
+    |SingleAmpersandCommand
+    |DoubleAmpersandCommand;
 }
 export const variableAtom=atom<mbsh.ShellVariable[]>([
   {
