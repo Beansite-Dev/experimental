@@ -3,6 +3,7 @@
 - add comments you bum (denial said so)
 - add git submodules for mb-fs2
 
+
 ## mb-fs2
 - make function to move files and swap file uuids (should be easy)
 - block 2 files with the same name in same dir: file.txt file (1).txt
@@ -25,6 +26,7 @@
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
 - Add to mkdir to allow it to create directories from anywhere
 - shell file scripts will not properly use redirect operators
+
 
 ## mb-win2
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
