@@ -43,7 +43,5 @@ export const lslFormatDateTime=(date:Date|undefined):string=>{
     minute: '2-digit',
     hour12: false
   };
-  return new Intl.DateTimeFormat('en-US',options)
-    .format(date)
-    .replace(',','');
+  return new Intl.DateTimeFormat('en-US',options).format(date).replace(',','');
 }
