@@ -15,7 +15,7 @@ export const runShellCommand=(
   vars:mbsh.ShellVariable[],
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   keyboardInputBuffer:{getValue:()=>string[]},
-):Promise<void>=>{
+):Promise<boolean>=>{
   const parsedCommand:string[]=(command.subcommand.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
   let args:string[]=iOfRedirOp>0?parsedCommand.slice(0,iOfRedirOp):parsedCommand;
@@ -34,8 +34,8 @@ export const runShellCommand=(
     mirror=next;
     setLogs(update);
   };
-  return new Promise<unknown>((resolve,reject)=>{
-    if(!args[0])resolve(0);
+  return new Promise<boolean>((resolve,reject)=>{
+    if(!args[0])resolve(true);
     // > ex usage of keyboardInputBuffer getter func
     // console.log("recieved value from promise",keyboardInputBuffer.getValue());
     if(iOfRedirOp===0)return reject({
@@ -57,7 +57,7 @@ export const runShellCommand=(
           setLogs(x=>[...x,
             {t:"l",m:vars.filter(x=>x.name==args[0].slice(1))[0].value},
           ]);
-          resolve(0);
+          resolve(true);
         }else{
           reject({
             name:"VariableNotFoundError",
@@ -93,7 +93,7 @@ export const runShellCommand=(
           let i:number=0;
           const value:string=raw.replace(/\$\(([^)]+)\)/g,()=>outs[i++]);
           setVars(x=>[...x.filter(v=>v.name!==name),{name,value}]);
-          resolve(0);
+          resolve(true);
         });
         return;
       }
@@ -114,8 +114,8 @@ export const runShellCommand=(
       ){
         console.log(`found pointer for command ${binCommandPointer.name} in "/bin"`);
         if(["bat","sh"].includes(binCommandPointer.type))
-          interpreter(String(binCommandPointer.data),false);
-        return resolve(0);
+          return interpreter(String(binCommandPointer.data),false).then(()=>resolve(true),reject);
+        return resolve(true);
       }else if(Array.isArray(parsedPath)){
         const pathOfInput:string[]=parsedPath.slice(0,-1);
         const possibleFileName:string=parsedPath.slice(-1)[0];
@@ -129,10 +129,9 @@ export const runShellCommand=(
           )[0]];
         if(filePointer&&filePointer.metadata.typeof.executable){
           console.log(`found pointer for command ${possibleFileName}||${filePointer.name} in relatively in ${pathOfInput}`);
-          //running file goes here
           if(["bat","sh"].includes((filePointer as mbfs.File).type))
-            interpreter(String(filePointer.data),false);
-          return resolve(0);
+            return interpreter(String(filePointer.data),false).then(()=>resolve(true),reject);
+          return resolve(true);
         }else return reject({
           name:"CommandNotFoundError",
           message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
@@ -157,7 +156,7 @@ export const runShellCommand=(
       ...args.slice(1)
     );
   }).then(()=>{
-    if(!outputPath)return;
+    if(!outputPath)return true;
     if(line)captured.push(line);
     const now=new Date();
     const cwdNames=mods.getNamesFromUuids(dirTree);
@@ -178,8 +177,10 @@ export const runShellCommand=(
         typeof:{system:false,directory:false,executable:false,},
       },
     });
+    return true;
   }).catch(e=>{
     const err=e as {name:string;message:string};
     setLogs(x=>[...x,{t:"nl"},...parseError(command.commandOfOrigin,err.name,err.message),]);
+    return false;
   });
 };

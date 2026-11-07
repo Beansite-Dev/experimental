@@ -1,18 +1,14 @@
 import { useAtom } from "jotai/react";
 import { keyboardInputBufferAtom, keyboardInputBufferDerivedAtom, logAtom, mbsh, variableAtom } from "./store";
-import { ComponentPropsWithoutRef, KeyboardEvent, useState } from "react";
+import { ComponentPropsWithoutRef, KeyboardEvent, useRef, useState } from "react";
 import { useFileSystem } from "mb-fs2";
 import { SetStateAction } from "jotai";
 import { runShellCommand } from "./runShellCommand";
 import { parseShell } from "./lib";
-// idea is, a person would wrap their function in the provider
-// and then use the useShell hook. Then the user can run the
-// interpreter function and it will interpret their shell
-// input
 export const useShell=():[
   logs.LogType[],//logs
   ((update: SetStateAction<logs.LogType[]>)=>void),//logs setter
-  (code:string,echo:boolean)=>void,//interpreter
+  (code:string,echo:boolean)=>Promise<void>,//interpreter
   ReturnType<typeof useFileSystem>[0],//filesystem
   ReturnType<typeof useFileSystem>[1],//scope
   ReturnType<typeof useFileSystem>[2],//dirTree (in uuids)
@@ -65,12 +61,16 @@ export const useShell=():[
       }
     }
   };
-  const interpreter=async(code:string,echo:boolean)=>{
-    // const commands=code.split(/;|\r?\n| && /);
+  const active=useRef(0);
+  const interpreter=async(code:string,echo:boolean):Promise<void>=>{
     const commands:mbsh.ShellCommand[][]=parseShell(code);
     for(const command of commands){
-      console.log(command);
-      command.forEach(sub=>{
+      let ok:boolean=true;
+      for(let i=0;i<command.length;i++){
+        const sub=command[i];
+        const next:string|undefined=command[i+1]?.invoker;
+        console.log("run",sub.subcommand,"| before:",sub.invoker,"| after:",next);
+        if(sub.invoker==="&&"&&!ok){console.log("skip",sub.subcommand);continue;}
         if(echo)setLogs(x=>[...x,
           {t:"nl"},
           ...(sub.invoker===""||!((sub.i||0)>0)
@@ -78,22 +78,22 @@ export const useShell=():[
             :[]
           )as logs.LogType[],
         ]);
-        //temp, will likely add custom feature here instead. maybe even be like ohmyposh
+        active.current++;
         setRunning(true);
-        runShellCommand(
-          sub,
-          scope,
-          mods,
-          logs,
-          setLogs,
-          dirTree,
-          interpreter,
-          vars,
-          setVars,
-          keyboardInputBuffer,
-        ).then(()=>setRunning(false));
-      });
-    };
+        const p:Promise<boolean>=runShellCommand(
+          sub,scope,mods,logs,setLogs,dirTree,interpreter,vars,setVars,keyboardInputBuffer,
+        ).then(r=>{
+          active.current--;
+          setRunning(active.current>0);
+          console.log("done",sub.subcommand,r);
+          return r;
+        });
+        switch(next){
+          case"&":ok=true;break;
+          default:ok=await p;
+        }
+      }
+    }
   };
   return[
     logs,

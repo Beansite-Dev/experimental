@@ -10,7 +10,7 @@ export const functionMapBase:{
     scope:mbfs.Directory,
     mods:modTypes,
     setLogs:((update:SetStateAction<logs.LogType[]>)=>void),
-    promise:[(value:number|PromiseLike<number>)=>void,(reason?:any)=>void],
+    promise:[(value:boolean|PromiseLike<boolean>)=>void,(reason?:any)=>void],
     dirTree:string[],
     sudo:boolean,
     vars:mbsh.ShellVariable[],
@@ -28,10 +28,10 @@ export const functionMapBase:{
     setLogs(x=>[...x.slice(0,-2),
       {t:"l",m:`/${f.join("/")} > ${command}`},{t:"nl"},
     ]);
-    promise[0](0);
+    promise[0](true);
   },
   wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,time)=>{
-    setTimeout(()=>promise[0](0),parseInt(time));
+    setTimeout(()=>promise[0](true),parseInt(time));
   },
   read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,...args:string[])=>{
     // > potential usage
@@ -57,7 +57,7 @@ export const functionMapBase:{
           :{},
         m:`${dir.data[key].name}${dir.data[key].metadata.typeof.directory?"":`.${(dir.data[key]as mbfs.File).type}`}`.padEnd(minObjLen),
       })),
-    ]);promise[0](0);}
+    ]);promise[0](true);}
     if(flags.includes("l")){setLogs(x=>[...x,
       {t:"l",m:`total ${JSON.stringify(dir).length} bytes`},{t:"nl"},
       ...Object.keys(dir.data).map((key,i):logs.LogType[]=>([
@@ -78,9 +78,9 @@ export const functionMapBase:{
         },
         ...(Object.keys(dir.data).length-1>i?[{t:"nl"}as logs.LogType]:[])
       ])).flat(),
-    ]);promise[0](0);}
+    ]);promise[0](true);}
   },
-  cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](0);},
+  cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](true);},
   touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,fileName:string):void=>{
     const name=fileName.split(".")[0];
     const type=fileName.split(".")[1]||"txt";
@@ -114,7 +114,7 @@ export const functionMapBase:{
         }
       }
     });
-    promise[0](0);
+    promise[0](true);
   },
   cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
@@ -130,7 +130,7 @@ export const functionMapBase:{
           :true)
       )[0]].data);
       setLogs(x=>[...x,{t:"l",m}]);
-      promise[0](0);
+      promise[0](true);
     }
   },
   tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,filePath):void=>{
@@ -147,7 +147,7 @@ export const functionMapBase:{
           :true)
       )[0]].data).split('\n').reverse().join('');
       setLogs(x=>[...x,{t:"l",m}]);
-      promise[0](0);
+      promise[0](true);
     }
   },
   chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,newval,file)=>{
@@ -192,7 +192,7 @@ export const functionMapBase:{
       });
     }
     mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
-    promise[0](0);
+    promise[0](true);
   },
   rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0];
@@ -208,7 +208,7 @@ export const functionMapBase:{
     if(parent.data[childUuid].metadata.typeof.directory&&!flags.includes("r"))
       throw new OperationRequiresRecursiveFlagError(`Operation requires a recursive flags`);
     mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
-    promise[0](0);
+    promise[0](true);
   },
   mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,name:string):void=>{
     mods.createDirectory(dirTree,{
@@ -240,12 +240,12 @@ export const functionMapBase:{
         }
       }
     });
-    promise[0](0);
+    promise[0](true);
   },
-  whoami:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](0)},
+  whoami:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](true)},
   echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
-    promise[0](0);
+    promise[0](true);
   }
 };
 // aliases go here. You can take function from the base function map and just set them to each other
@@ -254,7 +254,7 @@ export const functionMap:Record<string,(
   scope:mbfs.Directory,
   mods:modTypes,
   setLogs:((update: SetStateAction<logs.LogType[]>)=>void),
-  promise:[(value:number|PromiseLike<number>)=>void,(reason?:any)=>void],
+  promise:[(value:boolean|PromiseLike<boolean>)=>void,(reason?:any)=>void],
   dirTree:string[],
   sudo:boolean,
   vars:mbsh.ShellVariable[],
