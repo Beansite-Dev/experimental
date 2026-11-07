@@ -21,15 +21,10 @@ export const functionMapBase:{
 }={
   cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,inputPath:string):void=>{
     //f=arrOfFileNames (shortened cuz my keyboard is ass)
-    let f:string[]=[];
     let parsed:string[];
-    let debug:boolean=true;
-    if(debug)console.log("running cd path parser");
-    f=parsePath(inputPath,mods.getNamesFromUuids(dirTree));
-    parsed=mods.getUuidsFromDirectoryNames(f);
-    mods.enterDirectoryFromPath(parsed);
-    if(debug)console.warn("=> cd res: ",f,parsed);
-    mods.enterDirectoryFromPath(parsed);
+    let f:string[]=parsePath(inputPath,mods.getNamesFromUuids(dirTree));
+    console.log(f)
+    mods.enterDirectoryFromPath(mods.getUuidsFromDirectoryNames(f));
     setLogs(x=>[...x.slice(0,-2),
       {t:"l",m:`/${f.join("/")} > ${command}`},{t:"nl"},
     ]);
