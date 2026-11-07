@@ -152,49 +152,47 @@ export const functionMapBase:{
   },
   chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,newval,file)=>{
     const parsedPath:string[]=parsePath(file,mods.getNamesFromUuids(dirTree));
-    if(parsedPath){
-      //path parsing
-      const newFilePath=parsedPath.slice(0,-1);
-      const newFileName=parsedPath.slice(-1)[0];
-      const newFilePathUUIDs=mods.getUuidsFromDirectoryNames(newFilePath);
-      const dir=mods.getDirectoryContents(newFilePathUUIDs).data;
-      const uuid:string=String(Object.keys(dir).find(x=>
-        dir[x].name===newFileName.split(".")[0]
-        &&(newFileName.split(".")[1]
-          ?(dir[x] as mbfs.File).type==newFileName.split(".")[1]
-          :true)));
-      //mod parsing
-      if(!dir[uuid])promise[1]({
-        name:"FileNotFoundError",
-        message:`file ${newFileName} as not found in /${newFilePath.join("/")}`
+    const newFilePath=parsedPath.slice(0,-1);
+    const newFileName=parsedPath.slice(-1)[0];
+    const newFilePathUUIDs=mods.getUuidsFromDirectoryNames(newFilePath);
+    const dir=mods.getDirectoryContents(newFilePathUUIDs).data;
+    const uuid:string=String(Object.keys(dir).find(x=>
+      dir[x].name===newFileName.split(".")[0]
+      &&(newFileName.split(".")[1]
+        ?(dir[x] as mbfs.File).type==newFileName.split(".")[1]
+        :true)));
+    //mod parsing
+    if(!dir[uuid])promise[1]({
+      name:"FileNotFoundError",
+      message:`file ${newFileName} as not found in /${newFilePath.join("/")}`
+    });
+    let metadata={...dir[uuid].metadata,};
+    const indexOfType:number=newval.indexOf("+")<0?newval.indexOf("-"):newval.indexOf("+");
+    const groupArr:string[]=newval[indexOfType]=="+"?newval.split("+"):newval.split("-")[0].split("");
+    const guestMod:boolean=groupArr.includes("g");
+    const userMod:boolean=groupArr.includes("u");
+    const adminMod:boolean=groupArr.includes("a");
+    console.log(groupArr,indexOfType)
+    if(newval[indexOfType]=="+"||newval[indexOfType]=="-"){
+      newval.split("").slice(indexOfType).forEach((x)=>{
+        switch(x){
+          case"r":
+            if(userMod)metadata.access.read.users=newval[indexOfType]=="+";
+            if(guestMod)metadata.access.read.guests=newval[indexOfType]=="+";
+            if(adminMod)metadata.access.read.administrators=newval[indexOfType]=="+";
+          break;
+          case"w":
+            if(userMod)metadata.access.write.users=newval[indexOfType]=="+";
+            if(guestMod)metadata.access.write.guests=newval[indexOfType]=="+";
+            if(adminMod)metadata.access.write.administrators=newval[indexOfType]=="+";
+          break;
+          case"x":metadata.typeof.executable=newval[indexOfType]=="+";break;
+          default:console.log("unknown param for chmod: "+x);
+        }
       });
-      let metadata={...dir[uuid].metadata,};
-      const indexOfType:number=newval.indexOf("+")<0?newval.indexOf("-"):newval.indexOf("+");
-      const groupArr:string[]=newval[indexOfType]=="+"?newval.split("+"):newval.split("-")[0].split("");
-      const guestMod:boolean=groupArr.includes("g");
-      const userMod:boolean=groupArr.includes("u");
-      const adminMod:boolean=groupArr.includes("a");
-      console.log(groupArr,indexOfType)
-      if(newval[indexOfType]=="+"||newval[indexOfType]=="-"){
-        newval.split("").slice(indexOfType).forEach((x)=>{
-          switch(x){
-            case"r":
-              if(userMod)metadata.access.read.users=newval[indexOfType]=="+";
-              if(guestMod)metadata.access.read.guests=newval[indexOfType]=="+";
-              if(adminMod)metadata.access.read.administrators=newval[indexOfType]=="+";
-            break;
-            case"w":
-              if(userMod)metadata.access.write.users=newval[indexOfType]=="+";
-              if(guestMod)metadata.access.write.guests=newval[indexOfType]=="+";
-              if(adminMod)metadata.access.write.administrators=newval[indexOfType]=="+";
-            break;
-            case"x":metadata.typeof.executable=newval[indexOfType]=="+";break;
-            default:console.log("unknown param for chmod: "+x);
-          }
-        });
-      }
-      mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     }
+    mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
+    promise[0](0);
   },
   rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0];
