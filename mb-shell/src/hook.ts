@@ -1,5 +1,5 @@
 import { useAtom } from "jotai/react";
-import { keyboardInputBufferAtom, keyboardInputBufferDerivedAtom, logAtom, mbsh, variableAtom } from "./store";
+import { commandHistoryAtom, keyboardInputBufferAtom, keyboardInputBufferDerivedAtom, logAtom, mbsh, positionInCommandHistoryAtom, variableAtom } from "./store";
 import { ComponentPropsWithoutRef, KeyboardEvent, useRef, useState } from "react";
 import { useFileSystem } from "mb-fs2";
 import { SetStateAction } from "jotai";
@@ -20,6 +20,8 @@ export const useShell=():[
   const[vars,setVars]=useAtom(variableAtom);
   const[running,setRunning]=useState<boolean>(false);
   const[keyboardInputBuffer,setKeyboardInputBuffer]=useAtom(keyboardInputBufferDerivedAtom);
+  const[commandHistory,setCommandHistory]=useAtom(commandHistoryAtom);
+  const[positionInCommandHistory,setPositionInCommandHistory]=useAtom(positionInCommandHistoryAtom);
   const[
     filesystem,
     scope,
@@ -30,36 +32,37 @@ export const useShell=():[
   //filesystem is persistent but scope is not. Perfect for this 
   const textAreaEvents={
     onKeyDown:(e:KeyboardEvent<HTMLTextAreaElement>)=>{
-      let newKeyboardInputBufferValue=setKeyboardInputBuffer(e.key);
-      // console.log("instantaneous keyboard input buffer from hook: ",newKeyboardInputBufferValue);
+      setKeyboardInputBuffer(e.key);
       if(e.ctrlKey){
-        switch(e.key){
-          case "c":
+        switch(e.code){
+          case"KeyC":
             e.preventDefault();
             e.stopPropagation();
             if(e.shiftKey){
               const start=e.currentTarget.selectionStart;
               const end=e.currentTarget.selectionEnd;
               let textToCopy=e.currentTarget.value;
-              if(start!==end)textToCopy=e.currentTarget.value.substring(start, end);
+              if(start!==end)textToCopy=e.currentTarget.value.substring(start,end);
               if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(textToCopy);
               else{
                 e.currentTarget.select();
-                document.execCommand('copy');
+                document.execCommand("copy");
               }
             }else{
               //quit program
             }
+          break;
           default:console.log(e.key);
         }
       }
       if(e.key==="Enter"&&!e.shiftKey){
         e.preventDefault();
         e.stopPropagation();
-        try{interpreter(e.currentTarget.value,true);}catch{}
+        setCommandHistory(x=>[...x,e.currentTarget.value]);
+        interpreter(e.currentTarget.value,true).catch(console.error);
         e.currentTarget.value="";
       }
-    }
+    },
   };
   const active=useRef(0);
   const interpreter=async(code:string,echo:boolean):Promise<void>=>{

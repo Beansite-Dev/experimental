@@ -39,3 +39,5 @@ export const keyboardInputBufferDerivedAtom=atom(
     return nextValue;
   }
 );
+export const commandHistoryAtom=atom<string[]>([]);
+export const positionInCommandHistoryAtom=atom<number>(-1);
