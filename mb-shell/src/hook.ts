@@ -93,7 +93,7 @@ export const useShell=():[
       for(let i=0;i<command.length;i++){
         const sub=command[i];
         const next:string|undefined=command[i+1]?.invoker;
-        console.log("run",sub.subcommand,"| before:",sub.invoker,"| after:",next);
+        console.log("run",sub.subcommand,"| invoker:",sub.invoker,"| after:",next);
         if(sub.invoker==="&&"&&!ok){console.log("skip",sub.subcommand);continue;}
         if(echo)setLogs(x=>[...x,
           {t:"nl"},
