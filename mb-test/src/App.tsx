@@ -136,7 +136,7 @@ const Shell=({logs,mods,dirTree,textAreaInputs,running}:{
     {logs.map((x,i)=><Log logObject={x} key={i}/>)}<br/><br/>
     <div style={{visibility:running?"hidden":"visible"}} className="shellInputWrapper">
       /{mods.getNamesFromUuids(dirTree)}&nbsp;{">"}&nbsp;
-      <textarea {...textAreaInputs}/><br/>
+      <textarea {...(textAreaInputs as React.ComponentProps<"textarea">)}/><br/>
     </div>
   </div>;
 };
@@ -150,7 +150,7 @@ export const App=({}):ReactElement=>{
     directoryTree,
     fsMod,
     textAreaInputs,
-    running
+    running,
   ]=useShell();
   const[tab,setTab]=useState<number>(0);
   return<>

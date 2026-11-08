@@ -1,10 +1,10 @@
 import { useAtom } from "jotai/react";
 import { commandHistoryAtom, keyboardInputBufferAtom, keyboardInputBufferDerivedAtom, logAtom, mbsh, positionInCommandHistoryAtom, variableAtom } from "./store";
-import { ComponentPropsWithoutRef, KeyboardEvent, useRef, useState } from "react";
+import { ComponentPropsWithoutRef, ComponentPropsWithRef, KeyboardEvent, RefObject, useEffect, useRef, useState } from "react";
 import { useFileSystem } from "mb-fs2";
 import { SetStateAction } from "jotai";
 import { runShellCommand } from "./runShellCommand";
-import { parseShell } from "./lib";
+import { clamp, parseShell } from "./lib";
 export const useShell=():[
   logs.LogType[],//logs
   ((update: SetStateAction<logs.LogType[]>)=>void),//logs setter
@@ -13,8 +13,8 @@ export const useShell=():[
   ReturnType<typeof useFileSystem>[1],//scope
   ReturnType<typeof useFileSystem>[2],//dirTree (in uuids)
   ReturnType<typeof useFileSystem>[3],//modifier functions
-  ComponentPropsWithoutRef<'textarea'>,
-  boolean
+  ComponentPropsWithRef<'textarea'>,
+  boolean,
 ]=>{
   const[logs,setLogs]=useAtom(logAtom);
   const[vars,setVars]=useAtom(variableAtom);
@@ -29,8 +29,10 @@ export const useShell=():[
     mods,
   ]=useFileSystem();
   // const store=getDefaultStore();//no longer needed
-  //filesystem is persistent but scope is not. Perfect for this 
+  //filesystem is persistent but scope is not. Perfect for this ComponentPropsWithRef
+  const textAreaRef=useRef<HTMLTextAreaElement>(null);
   const textAreaEvents={
+    ref:textAreaRef,
     onKeyDown:(e:KeyboardEvent<HTMLTextAreaElement>)=>{
       setKeyboardInputBuffer(e.key);
       if(e.ctrlKey){
@@ -55,15 +57,34 @@ export const useShell=():[
           default:console.log(e.key);
         }
       }
+      if(e.key==="ArrowUp"){
+        e.preventDefault();
+        e.stopPropagation();
+        setPositionInCommandHistory(x=>clamp(x+1,-1,commandHistory.length-1));
+      }
+      if(e.key==="ArrowDown"){
+        e.preventDefault();
+        e.stopPropagation();
+        setPositionInCommandHistory(x=>clamp(x-1,-1,commandHistory.length-1));
+      }
       if(e.key==="Enter"&&!e.shiftKey){
         e.preventDefault();
         e.stopPropagation();
-        setCommandHistory(x=>[...x,e.currentTarget.value]);
+        setPositionInCommandHistory(-1);
+        setCommandHistory(x=>[e.currentTarget.value,...x]);
         interpreter(e.currentTarget.value,true).catch(console.error);
         e.currentTarget.value="";
       }
     },
   };
+  useEffect(()=>{
+    if(positionInCommandHistory===-1)textAreaRef.current!.value="";
+    if(commandHistory[positionInCommandHistory]){
+      textAreaRef.current!.value=commandHistory[positionInCommandHistory];
+      textAreaRef.current!.focus();
+      textAreaRef.current!.setSelectionRange(textAreaRef.current!.value.length,textAreaRef.current!.value.length);
+    }
+  },[positionInCommandHistory]);
   const active=useRef(0);
   const interpreter=async(code:string,echo:boolean):Promise<void>=>{
     const commands:mbsh.ShellCommand[][]=parseShell(code);
@@ -107,6 +128,6 @@ export const useShell=():[
     dirTree,
     mods,
     textAreaEvents,
-    running
+    running,
   ];
 };
