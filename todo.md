@@ -19,7 +19,6 @@
   - grep
   - rmdir
   - mv
-- implement more directory functions to existing commands like ls to list other directories while not having to be inside of them
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
 - Add to mkdir to allow it to create directories from anywhere
 - shell file scripts will not properly use redirect operators

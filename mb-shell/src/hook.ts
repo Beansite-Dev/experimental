@@ -109,9 +109,9 @@ export const useShell=():[
       textAreaRef.current!.setSelectionRange(textAreaRef.current!.value.length,textAreaRef.current!.value.length);
     }
   },[positionInCommandHistory]);
-  useEffect(()=>{
-    if(running)textAreaRef.current!.focus();
-  },[running]);
+  // useEffect(()=>{
+  //   if(running)textAreaRef.current!.focus();
+  // },[running]);
   const active=useRef(0);
   const interpreter=async(code:string,echo:boolean):Promise<void>=>{
     const commands:mbsh.ShellCommand[][]=parseShell(code);
