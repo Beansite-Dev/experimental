@@ -63,9 +63,16 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       {t:"l",m:`total ${JSON.stringify(dir).length} bytes`},{t:"nl"},
       ...Object.keys(dir.data).map((key,i):logs.LogType[]=>([
         {t:"l",
-          m:`${dir.data[key].metadata.typeof.directory?"d":"-"}rwxr-xr-${
-            dir.data[key].metadata.typeof.directory
-            ||dir.data[key].metadata.typeof.executable?"x":"-"}. `,
+          m:[//rwx
+            dir.data[key].metadata.typeof.directory?"d":"-",
+            dir.data[key].metadata.access.read.administrators?"r":"-",
+            dir.data[key].metadata.access.write.administrators?"w":"-","x",
+            dir.data[key].metadata.access.read.users?"r":"-",
+            dir.data[key].metadata.access.write.users?"w":"-","x",
+            dir.data[key].metadata.access.read.guests?"r":"-",
+            dir.data[key].metadata.access.write.guests?"w":"-",
+            dir.data[key].metadata.typeof.directory||dir.data[key].metadata.typeof.executable?"x":"-","."
+          ].join(""),
         },{t:"l",m:`1 `,},
         {t:"l",m:`${dir.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
         {t:"l",m:`${dir.data[key].metadata.originalCreator}`.padEnd(lMinNameLen),},
