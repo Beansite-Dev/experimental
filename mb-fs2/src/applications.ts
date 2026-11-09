@@ -1,6 +1,40 @@
 import type { mbfs } from "./atom.js";
 const formatMs=(ms:number)=>`${String(Math.floor(ms / 3600000)).padStart(2, '0')} hours, ${String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0')} minutes`;
 export const applications={
+  test:{
+    name:"test",
+    type:"sh",
+    data:`echo "this is a test. waiting \\Blue1000...\\End\\n";
+wait 1000;
+echo "waiting \\Blue10000...\\End\\n";
+wait 10000;
+echo "finished\\n";`,
+    metadata:{
+      access:{
+        read:{
+          administrators:true,
+          users:true,
+          guests:false,
+        },
+        write:{
+          administrators:true,
+          users:false,
+          guests:false,
+        },
+      },
+      date:{
+        created:new Date(),
+        modified:new Date(),
+        accessed:new Date(),
+      },
+      originalCreator:"root",
+      typeof:{
+        system:false,
+        directory:false,
+        executable:true,
+      }
+    },
+  }, 
   neofetch:{
     name:"neofetch",
     type:"sh",

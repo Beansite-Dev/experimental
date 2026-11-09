@@ -22,6 +22,7 @@ export const useShell=():[
   const[keyboardInputBuffer,setKeyboardInputBuffer]=useAtom(keyboardInputBufferDerivedAtom);
   const[commandHistory,setCommandHistory]=useAtom(commandHistoryAtom);
   const[positionInCommandHistory,setPositionInCommandHistory]=useAtom(positionInCommandHistoryAtom);
+  const sessions=useRef(new Set<AbortController>());
   const[
     filesystem,
     scope,
@@ -31,8 +32,31 @@ export const useShell=():[
   // const store=getDefaultStore();//no longer needed
   //filesystem is persistent but scope is not. Perfect for this ComponentPropsWithRef
   const textAreaRef=useRef<HTMLTextAreaElement>(null);
-  const textAreaEvents={
+  const textAreaEvents:ComponentPropsWithRef<'textarea'>={
     ref:textAreaRef,
+    autoFocus:true,
+    spellCheck:false,
+    autoCapitalize:"off",
+    autoCorrect:"off",
+    "aria-label":"terminal input",
+    style:running?{
+      position:"fixed",
+      top:0,
+      left:0,
+      width:1,
+      height:1,
+      padding:0,
+      border:0,
+      opacity:0,
+      overflow:"hidden",
+      resize:"none",
+      pointerEvents:"none",
+      caretColor:"transparent",
+    }:{},
+    onBlur:e=>{
+      //focus went nowhere (clicked on empty space), so take it back. If it went to another input, leave it alone
+      if(!e.relatedTarget)requestAnimationFrame(()=>e.target.focus());
+    },
     onKeyDown:(e:KeyboardEvent<HTMLTextAreaElement>)=>{
       setKeyboardInputBuffer(e.key);
       if(e.ctrlKey){
@@ -51,7 +75,7 @@ export const useShell=():[
                 document.execCommand("copy");
               }
             }else{
-              //quit program
+              sessions.current.forEach(c=>c.abort());
             }
           break;
           default:console.log(e.key);
@@ -67,7 +91,7 @@ export const useShell=():[
         e.stopPropagation();
         setPositionInCommandHistory(x=>clamp(x-1,-1,commandHistory.length-1));
       }
-      if(e.key==="Enter"&&!e.shiftKey){
+      if((e.key==="Enter"&&!e.shiftKey)&&!running){
         e.preventDefault();
         e.stopPropagation();
         setPositionInCommandHistory(-1);
@@ -85,38 +109,52 @@ export const useShell=():[
       textAreaRef.current!.setSelectionRange(textAreaRef.current!.value.length,textAreaRef.current!.value.length);
     }
   },[positionInCommandHistory]);
+  useEffect(()=>{
+    if(running)textAreaRef.current!.focus();
+  },[running]);
   const active=useRef(0);
   const interpreter=async(code:string,echo:boolean):Promise<void>=>{
     const commands:mbsh.ShellCommand[][]=parseShell(code);
-    for(const command of commands){
-      let ok:boolean=true;
-      for(let i=0;i<command.length;i++){
-        const sub=command[i];
-        const next:string|undefined=command[i+1]?.invoker;
-        console.log("run",sub.subcommand,"| invoker:",sub.invoker,"| after:",next);
-        if(sub.invoker==="&&"&&!ok){console.log("skip",sub.subcommand);continue;}
-        if(echo)setLogs(x=>[...x,
-          {t:"nl"},
-          ...(sub.invoker===""||!((sub.i||0)>0)
-            ?[{t:"nl"},{t:"l",m:`/${mods.getNamesFromUuids(dirTree).join("/")} > ${sub.commandOfOrigin}`},{t:"nl"}]
-            :[]
-          )as logs.LogType[],
-        ]);
-        active.current++;
-        setRunning(true);
-        const p:Promise<boolean>=runShellCommand(
-          sub,scope,mods,logs,setLogs,dirTree,interpreter,vars,setVars,keyboardInputBuffer,
-        ).then(r=>{
-          active.current--;
-          setRunning(active.current>0);
-          console.log("done",sub.subcommand,r);
-          return r;
-        });
-        switch(next){
-          case"&":ok=true;break;
-          default:ok=await p;
+    const session=new AbortController();
+    const{signal}=session;
+    const aborted=new Promise<boolean>(r=>signal.addEventListener("abort",()=>r(false),{once:true}));
+    sessions.current.add(session);
+    try{
+      for(const command of commands){
+        if(signal.aborted)break;
+        let ok:boolean=true;
+        for(let i=0;i<command.length;i++){
+          if(signal.aborted)break;
+          const sub=command[i];
+          const next:string|undefined=command[i+1]?.invoker;
+          if(sub.invoker==="&&"&&!ok){console.log("skip",sub.subcommand);continue;}
+          if(echo)setLogs(x=>[...x,
+            {t:"nl"},
+            ...(sub.invoker===""||!((sub.i||0)>0)
+              ?[{t:"nl"},{t:"l",m:`/${mods.getNamesFromUuids(dirTree).join("/")} > ${sub.commandOfOrigin}`},{t:"nl"}]
+              :[]
+            )as logs.LogType[],
+          ]);
+          active.current++;
+          setRunning(true);
+          const p:Promise<boolean>=runShellCommand(
+            sub,scope,mods,logs,setLogs,dirTree,interpreter,vars,setVars,keyboardInputBuffer,signal,
+          ).finally(()=>{
+            active.current--;
+            setRunning(active.current>0);
+          });
+          switch(next){
+            case"&":ok=true;break;
+            default:ok=await Promise.race([p,aborted]);
+          }
+          if(signal.aborted){
+            setLogs(x=>[...x,{t:"l",m:"^C"}]);
+            break;
+          }
         }
       }
+    }finally{
+      sessions.current.delete(session);
     }
   };
   return[

@@ -4,22 +4,22 @@ import { SetStateAction } from "jotai/vanilla";
 import { parseLog } from "./logs";
 import { OperationRequiresRecursiveFlagError, OperationRequiresRootError } from "./exceptions";
 import { mbsh } from "./store";
-export const functionMapBase:{
-  [key:string]:((
-    command:string,
-    scope:mbfs.Directory,
-    mods:modTypes,
-    setLogs:((update:SetStateAction<logs.LogType[]>)=>void),
-    promise:[(value:boolean|PromiseLike<boolean>)=>void,(reason?:any)=>void],
-    dirTree:string[],
-    sudo:boolean,
-    vars:mbsh.ShellVariable[],
-    setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
-    keyboardInputBuffer:{getValue:()=>string[]},
-    ...args:string[]
-  )=>void)|void;
-}={
-  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,inputPath:string):void=>{
+type shellFunction=(
+  command:string,
+  scope:mbfs.Directory,
+  mods:modTypes,
+  setLogs:((update:SetStateAction<logs.LogType[]>)=>void),
+  promise:[(value:boolean|PromiseLike<boolean>)=>void,(reason?:any)=>void],
+  dirTree:string[],
+  sudo:boolean,
+  vars:mbsh.ShellVariable[],
+  setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
+  keyboardInputBuffer:{getValue:()=>string[]},
+  signal:AbortSignal,
+  ...args:string[]
+)=>void;
+export const functionMapBase:{[key:string]:shellFunction|void;}={
+  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,inputPath:string):void=>{
     //f=arrOfFileNames (shortened cuz my keyboard is ass)
     let parsed:string[];
     let f:string[]=parsePath(inputPath,mods.getNamesFromUuids(dirTree));
@@ -30,16 +30,17 @@ export const functionMapBase:{
     ]);
     promise[0](true);
   },
-  wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,time)=>{
-    setTimeout(()=>promise[0](true),parseInt(time));
+  wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,time)=>{
+    const t=setTimeout(()=>promise[0](true),parseInt(time));
+    signal.addEventListener("abort",()=>clearTimeout(t),{once:true});
   },
-  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,...args:string[])=>{
+  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[])=>{
     // > potential usage
     // read -p "Enter your name: " user_name
     // echo "Hello, $user_name!"
     
   },
-  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
+  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
     // new ls post rework
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0]||"./";
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
@@ -81,7 +82,7 @@ export const functionMapBase:{
     ]);promise[0](true);}
   },
   cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](true);},
-  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,fileName:string):void=>{
+  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,fileName:string):void=>{
     const name=fileName.split(".")[0];
     const type=fileName.split(".")[1]||"txt";
     mods.createFile(dirTree,{
@@ -116,7 +117,7 @@ export const functionMapBase:{
     });
     promise[0](true);
   },
-  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,filePath):void=>{
+  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
@@ -133,7 +134,7 @@ export const functionMapBase:{
       promise[0](true);
     }
   },
-  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,filePath):void=>{
+  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
@@ -150,7 +151,7 @@ export const functionMapBase:{
       promise[0](true);
     }
   },
-  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,newval,file)=>{
+  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,newval,file)=>{
     const parsedPath:string[]=parsePath(file,mods.getNamesFromUuids(dirTree));
     const newFilePath=parsedPath.slice(0,-1);
     const newFileName=parsedPath.slice(-1)[0];
@@ -194,7 +195,7 @@ export const functionMapBase:{
     mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     promise[0](true);
   },
-  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
+  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0];
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
     const path:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
@@ -210,7 +211,7 @@ export const functionMapBase:{
     mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
     promise[0](true);
   },
-  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,name:string):void=>{
+  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,name:string):void=>{
     mods.createDirectory(dirTree,{
       name,
       data:{},
@@ -243,29 +244,17 @@ export const functionMapBase:{
     promise[0](true);
   },
   whoami:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](true)},
-  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,...args:string[]):void=>{
+  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](true);
   }
 };
 // aliases go here. You can take function from the base function map and just set them to each other
-export const functionMap:Record<string,(
-  command:string,
-  scope:mbfs.Directory,
-  mods:modTypes,
-  setLogs:((update: SetStateAction<logs.LogType[]>)=>void),
-  promise:[(value:boolean|PromiseLike<boolean>)=>void,(reason?:any)=>void],
-  dirTree:string[],
-  sudo:boolean,
-  vars:mbsh.ShellVariable[],
-  setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
-  keyboardInputBuffer:{getValue:()=>string[]},
-  ...args:string[]
-)=>void>={
+export const functionMap:Record<string,shellFunction>={
   ...functionMapBase,
   "":()=>{},
   dir: functionMapBase.ls!,
   clear: functionMapBase.cls!,
-  "ll":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,"-l"),
-  "cd..":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,".."),
+  "ll":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,"-l"),
+  "cd..":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,".."),
 };

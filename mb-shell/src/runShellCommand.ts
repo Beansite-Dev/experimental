@@ -15,6 +15,7 @@ export const runShellCommand=(
   vars:mbsh.ShellVariable[],
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   keyboardInputBuffer:{getValue:()=>string[]},
+  signal:AbortSignal
 ):Promise<boolean>=>{
   const parsedCommand:string[]=(command.subcommand.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
@@ -34,7 +35,12 @@ export const runShellCommand=(
     mirror=next;
     setLogs(update);
   };
+  let onAbort:(()=>void)|undefined;
   return new Promise<boolean>((resolve,reject)=>{
+    const abortError={name:"AbortError",message:"interrupted"};
+    if(signal.aborted)return reject(abortError);
+    onAbort=()=>reject(abortError);
+    signal.addEventListener("abort",onAbort,{once:true});
     if(!args[0])resolve(true);
     // > ex usage of keyboardInputBuffer getter func
     // console.log("recieved value from promise",keyboardInputBuffer.getValue());
@@ -85,7 +91,7 @@ export const runShellCommand=(
               else if("m" in e)cur+=e.m??"";
             }
             seen=next;
-          },dirTree,interpreter,vars,setVars,keyboardInputBuffer).then(()=>{
+          },dirTree,interpreter,vars,setVars,keyboardInputBuffer,signal).then(()=>{
             out.push(cur);
             return out.join("\n").trimEnd();
           });
@@ -153,6 +159,7 @@ export const runShellCommand=(
       vars,
       setVars,
       keyboardInputBuffer,
+      signal,
       ...args.slice(1)
     );
   }).then(()=>{
@@ -179,8 +186,11 @@ export const runShellCommand=(
     });
     return true;
   }).catch(e=>{
+    if(signal.aborted)return false;
     const err=e as {name:string;message:string};
     setLogs(x=>[...x,{t:"nl"},...parseError(command.commandOfOrigin,err.name,err.message),]);
     return false;
+  }).finally(()=>{
+    if(onAbort)signal.removeEventListener("abort",onAbort);
   });
 };

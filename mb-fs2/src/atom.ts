@@ -70,6 +70,7 @@ const mkFile=(name:string,type:string,data:string|Blob,metadata:mbfs.metadata):m
 export const fsAtom=atom<mbfs.Directory>(mkDir("root",{
   [uuidv4()]:mkDir("bin",{
     [uuidv4()]:applications.neofetch,
+    [uuidv4()]:applications.test,
   },meta("root",true,true)),
   [uuidv4()]:mkDir("home",{
     [uuidv4()]:mkDir("administrator",{

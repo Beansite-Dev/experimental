@@ -13,9 +13,7 @@
 
 
 ## mb-shell
-- Add text inputs using `<input/>` or using a buffer that gets appended to by keyboard inputs
-- Add keyboard support to send keyboard inputs as text characters
-- Allow commands to receive keyboard shortcuts like ctrl+c to quit (IN PROGRESS)
+- Add a state which allows commands to be broken out of
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
   - grep

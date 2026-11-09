@@ -134,7 +134,11 @@ const Shell=({logs,mods,dirTree,textAreaInputs,running}:{
   },[logs]);
   return<div ref={scrollContainerRef} className="shell">
     {logs.map((x,i)=><Log logObject={x} key={i}/>)}<br/><br/>
-    <div style={{visibility:running?"hidden":"visible"}} className="shellInputWrapper">
+    <div 
+      style={textAreaInputs.style}
+      // style={{visibility:running?"hidden":"visible"}} 
+      className="shellInputWrapper"
+    >
       /{mods.getNamesFromUuids(dirTree)}&nbsp;{">"}&nbsp;
       <textarea {...(textAreaInputs as React.ComponentProps<"textarea">)}/><br/>
     </div>
