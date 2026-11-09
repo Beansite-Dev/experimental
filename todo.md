@@ -13,7 +13,7 @@
 
 
 ## mb-shell
-- Add a state which allows commands to be broken out of
+- add ability to run js files using same system as the beansite addons store
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
   - grep
