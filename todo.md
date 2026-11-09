@@ -14,6 +14,7 @@
 
 ## mb-shell
 - add ability to run js files using same system as the beansite addons store
+- Add number codes to chmod
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
   - grep
