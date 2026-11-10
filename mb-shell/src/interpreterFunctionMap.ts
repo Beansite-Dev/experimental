@@ -69,19 +69,30 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       message:`-r not specified; omitting directory '${filePath[0]}'`,
     });
     const now=new Date();
-    mods.createFsObject(parentOfCopyUuids,{
-      ...original,
-      name:copyName,
-      ...isDir?{}:{type:copyType},
-      metadata:{
-        ...original.metadata,
+    const cloneObject=(o:mbfs.File|mbfs.Directory,name:string,type?:string):mbfs.File|mbfs.Directory=>{
+      const metadata={
+        ...structuredClone(o.metadata),
         date:{
           created:now,
           modified:now,
           accessed:now,
         },
-      },
-    });
+      };
+      if(o.metadata.typeof.directory)return {
+        name,
+        data:Object.fromEntries(Object.values(o.data as Record<string,mbfs.File|mbfs.Directory>).map(c=>[crypto.randomUUID(),cloneObject(c,c.name,(c as mbfs.File).type)])),
+        metadata,
+      } as mbfs.Directory;
+      return {
+        name,
+        type:type||(o as mbfs.File).type,
+        data:structuredClone(o.data),
+        metadata,
+      } as mbfs.File;
+    };
+    const copy=cloneObject(original,copyName,copyType);
+    if(isDir)mods.createDirectory(parentOfCopyUuids,copy as mbfs.Directory);
+    else mods.createFile(parentOfCopyUuids,copy as mbfs.File);
     promise[0](true);
   },
   mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
