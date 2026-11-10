@@ -78,17 +78,17 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
           accessed:now,
         },
       };
-      if(o.metadata.typeof.directory)return {
+      if(o.metadata.typeof.directory)return{
         name,
         data:Object.fromEntries(Object.values(o.data as Record<string,mbfs.File|mbfs.Directory>).map(c=>[crypto.randomUUID(),cloneObject(c,c.name,(c as mbfs.File).type)])),
         metadata,
-      } as mbfs.Directory;
-      return {
+      }as mbfs.Directory;
+      return{
         name,
         type:type||(o as mbfs.File).type,
         data:structuredClone(o.data),
         metadata,
-      } as mbfs.File;
+      }as mbfs.File;
     };
     const copy=cloneObject(original,copyName,copyType);
     if(isDir)mods.createDirectory(parentOfCopyUuids,copy as mbfs.Directory);
