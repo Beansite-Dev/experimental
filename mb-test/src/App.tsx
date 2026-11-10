@@ -159,8 +159,8 @@ export const App=({}):ReactElement=>{
   const[tab,setTab]=useState<number>(0);
   return<>
     <h1>mb-test</h1>
-    <Browser {...{scope,fsMod,directoryTree}}/>
     <Shell {...{logs,mods:fsMod,dirTree:directoryTree,textAreaInputs,running}}/>
+    <Browser {...{scope,fsMod,directoryTree}}/>
     <hr/>
     <span style={{minHeight:"1rem !important",display:"block"}}>
       dir tree: {fsMod.getNamesFromUuids(directoryTree).join("/")||"(empty...)"}
