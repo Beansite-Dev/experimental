@@ -54,8 +54,7 @@ export const useShell=():[
       caretColor:"transparent",
     }:{},
     onBlur:e=>{
-      //focus went nowhere (clicked on empty space), so take it back. If it went to another input, leave it alone
-      if(!e.relatedTarget)requestAnimationFrame(()=>e.target.focus());
+      if(!e.relatedTarget&&running)requestAnimationFrame(()=>e.target.focus());
     },
     onKeyDown:(e:KeyboardEvent<HTMLTextAreaElement>)=>{
       setKeyboardInputBuffer(e.key);
