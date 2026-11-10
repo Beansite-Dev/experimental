@@ -127,10 +127,10 @@ const Shell=({logs,mods,dirTree,textAreaInputs,running}:{
 }):ReactElement=>{
   const scrollContainerRef=useRef<HTMLDivElement|null>(null);
   useEffect(()=>{if(scrollContainerRef.current) 
-    scrollContainerRef.current.scrollTo({
-      top:scrollContainerRef.current.scrollHeight,
+    setTimeout(()=>scrollContainerRef.current!.scrollTo({
+      top:scrollContainerRef.current!.scrollHeight,
       behavior:'smooth',
-    });
+    }),100);
   },[logs]);
   return<div ref={scrollContainerRef} className="shell">
     {logs.map((x,i)=><Log logObject={x} key={i}/>)}<br/><br/>

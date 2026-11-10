@@ -34,6 +34,12 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     const t=setTimeout(()=>promise[0](true),parseInt(time));
     signal.addEventListener("abort",()=>clearTimeout(t),{once:true});
   },
+  cp:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
+    
+  },
+  mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
+
+  },
   read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[])=>{
     // > potential usage
     // read -p "Enter your name: " user_name
