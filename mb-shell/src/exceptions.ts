@@ -4,6 +4,12 @@ export class InvalidLogObjectError extends Error {
     this.name="InvalidLogObjectError";
   }
 }
+export class InvalidArgumentsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name="InvalidArgumentsError";
+  }
+}
 export class OperationRequiresRootError extends Error {
   constructor(message: string) {
     super(message);

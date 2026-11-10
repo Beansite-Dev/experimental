@@ -18,6 +18,7 @@ export type modTypes={
   //modifiers
   createFile:(path:string[],fileData:mbfs.File)=>void;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>void;
+  createFsObject:(path:string[],fileData:mbfs.File|mbfs.Directory)=>void;
   deleteFilesystemObject:(path:string[],uuidOfFile:string)=>void;
   modifyFilesysteObjectAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>)=>void;
 };
@@ -109,6 +110,21 @@ export const useFileSystem=():[
       return d;
     },
     createFile:(path:string[],fileData:mbfs.File):void=>{
+      const parsed=file.parse(fileData);
+      const uuidOfNewFile=uuidv4();
+      const insert=(currentDirectory:mbfs.Directory,i:number):mbfs.Directory=>{
+        const uuidOfStep=path[i];
+        if(uuidOfStep===undefined)return{...currentDirectory,data:{...currentDirectory.data,[uuidOfNewFile]:parsed}};
+        const node=currentDirectory.data[uuidOfStep];
+        if(!node)throw new DirectoryNotFoundError(`no entry with uuid ${uuidOfStep} in "${currentDirectory.name}"`);
+        if(!node.metadata.typeof.directory)throw new FilesystemObjectTypeError(`"${node.name}" (${uuidOfStep}) is a file, not a directory`);
+        return{...currentDirectory,data:{...currentDirectory.data,[uuidOfStep]:insert(node as mbfs.Directory,i+1)}};
+      };
+      const next=insert(fs,0);
+      setFs(next);
+      setScope(dirTree.reduce((x,u)=>x.data[u] as mbfs.Directory,next));
+    },
+    createFsObject:(path:string[],fileData:mbfs.File|mbfs.Directory):void=>{
       const parsed=file.parse(fileData);
       const uuidOfNewFile=uuidv4();
       const insert=(currentDirectory:mbfs.Directory,i:number):mbfs.Directory=>{

@@ -1,8 +1,8 @@
-import { mbfs, modTypes } from "mb-fs2";
+import { mbfs, metadata, modTypes } from "mb-fs2";
 import { clamp, getMinLength, lslFormatDateTime, parsePath } from "./lib";
 import { SetStateAction } from "jotai/vanilla";
 import { parseLog } from "./logs";
-import { OperationRequiresRecursiveFlagError, OperationRequiresRootError } from "./exceptions";
+import { InvalidArgumentsError, OperationRequiresRecursiveFlagError, OperationRequiresRootError } from "./exceptions";
 import { mbsh } from "./store";
 type shellFunction=(
   command:string,
@@ -35,7 +35,54 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     signal.addEventListener("abort",()=>clearTimeout(t),{once:true});
   },
   cp:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
-    
+    const filePath:string[]=args.filter(x=>!x.startsWith("-"));
+    if(filePath.length<2)return promise[1]({
+      name:"InvalidArgumentsError",
+      message:"not enough arguments passed",
+    });
+    const flags=new Set(args.filter(x=>x.startsWith("-")).flatMap(x=>x.startsWith("--")?[x.slice(2)]:x.slice(1).split("")));
+    const recursive=flags.has("r")||flags.has("R")||flags.has("recursive");
+    const splitName=(n:string)=>{
+      const i=n.lastIndexOf(".");
+      return i>0?[n.slice(0,i),n.slice(i+1)]:[n,""];
+    };
+    const parsedPathOfOriginal:string[]=parsePath(filePath[0],mods.getNamesFromUuids(dirTree));
+    const parsedPathOfCopy:string[]=parsePath(filePath[1],mods.getNamesFromUuids(dirTree));
+    const parentOfOriginalName=parsedPathOfOriginal.slice(0,-1);
+    const parentOfCopyName=parsedPathOfCopy.slice(0,-1);
+    const [originalName,originalType]=splitName(parsedPathOfOriginal.at(-1)!);
+    const [copyName,copyType]=splitName(parsedPathOfCopy.at(-1)!);
+    const parentOfOriginalUuids=mods.getUuidsFromDirectoryNames(parentOfOriginalName);
+    const parentOfCopyUuids=mods.getUuidsFromDirectoryNames(parentOfCopyName);
+    const parentOfOriginal=mods.getDirectoryContents(parentOfOriginalUuids).data;
+    const original=Object.values(parentOfOriginal).find(x=>
+      x.name===originalName
+      &&(!originalType||(x as mbfs.File).type===originalType)
+    );
+    if(!original)return promise[1]({
+      name:"NotFoundError",
+      message:`cannot stat '${filePath[0]}': No such file or directory`,
+    });
+    const isDir=original.metadata.typeof.directory;
+    if(isDir&&!recursive)return promise[1]({
+      name:"InvalidArgumentsError",
+      message:`-r not specified; omitting directory '${filePath[0]}'`,
+    });
+    const now=new Date();
+    mods.createFsObject(parentOfCopyUuids,{
+      ...original,
+      name:copyName,
+      ...isDir?{}:{type:copyType},
+      metadata:{
+        ...original.metadata,
+        date:{
+          created:now,
+          modified:now,
+          accessed:now,
+        },
+      },
+    });
+    promise[0](true);
   },
   mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
 
@@ -132,20 +179,18 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
   },
   cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
-    if(parsedPath){
-      const newFilePath=parsedPath.slice(0,-1);
-      const newFileName=parsedPath.slice(-1)[0];
-      const newFilePathUUIDs=mods.getUuidsFromDirectoryNames(newFilePath);
-      const dir=mods.getDirectoryContents(newFilePathUUIDs).data;
-      const m=String(dir[Object.keys(dir).filter(x=>
-         dir[x].name===newFileName.split(".")[0]
-         &&(newFileName.split(".")[1]?
-          (dir[x] as mbfs.File).type===newFileName.split(".")[1]
-          :true)
-      )[0]].data);
-      setLogs(x=>[...x,{t:"l",m}]);
-      promise[0](true);
-    }
+    const parent=parsedPath.slice(0,-1);
+    const name=parsedPath.slice(-1)[0];
+    const parentUuids=mods.getUuidsFromDirectoryNames(parent);
+    const dir=mods.getDirectoryContents(parentUuids).data;
+    const m=String(dir[Object.keys(dir).filter(x=>
+       dir[x].name===name.split(".")[0]
+       &&(name.split(".")[1]?
+        (dir[x] as mbfs.File).type===name.split(".")[1]
+        :true)
+    )[0]].data);
+    setLogs(x=>[...x,{t:"l",m}]);
+    promise[0](true);
   },
   tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
