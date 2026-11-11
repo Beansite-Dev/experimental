@@ -22,3 +22,15 @@ export class FilesystemObjectTypeError extends Error {
     this.name="FilesystemObjectTypeError";
   }
 }
+export class DuplicateEntryError extends Error{
+  constructor(message:string){
+    super(message);
+    this.name='DuplicateEntryError';
+  }
+}
+export class InvalidMoveError extends Error{
+  constructor(message:string){
+    super(message);
+    this.name='InvalidMoveError';
+  }
+}
