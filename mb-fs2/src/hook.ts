@@ -4,24 +4,21 @@ import { useMemo, useState } from "react";
 import { DirectoryNotFoundError, DuplicateEntryError, FileNotFoundError, FilesystemObjectTypeError, InvalidMoveError } from './exceptions.js';
 import { v4 as uuidv4 } from 'uuid';
 export type modTypes={
-  //directory movement
   enterDirectoryFromScope:(uuid:string)=>void;
   enterParentDirectory:()=>void;
   enterDirectoryFromPath:(path:string[])=>void;
-  //getters
   getFilesystemObjectInfo:(path:string[],childName:string)=>mbfs.File|mbfs.Directory;
   getUuidsFromDirectoryNames:(names:string[])=>string[];
   getUuidsFromFileNames:(names:string[])=>string[];
   getNamesFromUuids:(uuids:string[])=>string[];
   getFileSystem:()=>mbfs.Directory;
   getDirectoryContents:(path:string[])=>mbfs.Directory;
-  //modifiers (create* return the uuid of the new entry)
   createFile:(path:string[],fileData:mbfs.File)=>string;
   createDirectory:(path:string[],dirData:mbfs.Directory)=>string;
   createFsObject:(path:string[],fileData:mbfs.File|mbfs.Directory)=>string;
   deleteFilesystemObject:(path:string[],uuidOfFile:string)=>void;
   modifyFilesysteObjectAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>|Partial<mbfs.Directory>)=>void;
-  moveFilesystemObject:(fromPath:string[],uuidOfObject:string,toPath:string[])=>void;
+  moveFilesystemObject:(fromPath:string[],uuidOfObject:string,toPath:string[],newAttributes?:Partial<mbfs.File>|Partial<mbfs.Directory>)=>void;
 };
 const isDir=(n:mbfs.File|mbfs.Directory):n is mbfs.Directory=>!!n.metadata.typeof.directory;
 const child=(d:mbfs.Directory,uuid:string):mbfs.Directory=>{
@@ -59,9 +56,11 @@ const updateAt=(root:mbfs.Directory,path:string[],fn:(d:mbfs.Directory)=>mbfs.Di
   };
   return go(root,0);
 };
-const hasName=(d:mbfs.Directory,name:string,directory:boolean,ignoreUuid?:string):boolean=>Object.entries(d.data).some(([k,v])=>k!==ignoreUuid&&isDir(v)===directory&&v.name===name);
+const sameEntry=(a:mbfs.File|mbfs.Directory,b:mbfs.File|mbfs.Directory):boolean=>isDir(a)===isDir(b)&&a.name===b.name&&(isDir(a)||(a as mbfs.File).type===(b as mbfs.File).type);
+const hasEntry=(d:mbfs.Directory,entry:mbfs.File|mbfs.Directory,ignoreUuid?:string):boolean=>Object.entries(d.data).some(([k,v])=>k!==ignoreUuid&&sameEntry(v,entry));
+const label=(e:mbfs.File|mbfs.Directory):string=>isDir(e)?e.name:`${e.name}.${(e as mbfs.File).type}`;
 const withEntry=(d:mbfs.Directory,uuid:string,entry:mbfs.File|mbfs.Directory):mbfs.Directory=>{
-  if(hasName(d,entry.name,isDir(entry)))throw new DuplicateEntryError(`"${d.name}" already has a ${isDir(entry)?'directory':'file'} named "${entry.name}"`);
+  if(hasEntry(d,entry))throw new DuplicateEntryError(`"${d.name}" already has a ${isDir(entry)?'directory':'file'} named "${label(entry)}"`);
   return{...d,data:{...d.data,[uuid]:entry}};
 };
 const withoutEntry=(d:mbfs.Directory,uuid:string):mbfs.Directory=>({...d,data:Object.fromEntries(Object.entries(d.data).filter(([k])=>k!==uuid))});
@@ -77,11 +76,10 @@ const uuidsByName=(root:mbfs.Directory,names:string[],wantDir:boolean):string[]=
   return uuids;
 };
 export const useFileSystem=():[
-  mbfs.Directory,//full filesystem
-  mbfs.Directory,//currnet scope
-  string[],//tree of directory uuids
-  modTypes,//functions for mod 
-  // PrimitiveAtom<mbfs.Directory>,//atom for filesystem
+  mbfs.Directory,
+  mbfs.Directory,
+  string[],
+  modTypes,
 ]=>{
   const[fs,setFs]=useAtom(fsAtom);
   const[dirTree,setDirTree]=useState<string[]>([]);
@@ -111,8 +109,6 @@ export const useFileSystem=():[
       resolve(fs,path);
       setDirTree([...path]);
     },
-    //!redundant
-    // getDirTree:():string[]=>mods.getNamesFromUuids(dirTree),
     getFilesystemObjectInfo:(path:string[],uuid:string):mbfs.File|mbfs.Directory=>{
       const d=resolve(fs,path);
       const n=d.data[uuid];
@@ -122,7 +118,6 @@ export const useFileSystem=():[
     getUuidsFromDirectoryNames:(names:string[]):string[]=>uuidsByName(fs,names,true),
     getUuidsFromFileNames:(names:string[]):string[]=>uuidsByName(fs,names,false),
     getNamesFromUuids:(uuids:string[]):string[]=>trail(fs,uuids).map(d=>d.name),
-    //js incase only mods is provided
     getFileSystem:():mbfs.Directory=>fs,
     getDirectoryContents:(path:string[]):mbfs.Directory=>resolve(fs,path),
     createFile:(path:string[],fileData:mbfs.File):string=>add(path,file.parse(fileData)),
@@ -145,18 +140,23 @@ export const useFileSystem=():[
         const parsed=isDir(existing)
           ?dir.parse({...existing,...newAttributes})
           :file.parse({...existing,...newAttributes});
-        if(parsed.name!==existing.name&&hasName(d,parsed.name,isDir(parsed),uuidOfObject))throw new DuplicateEntryError(`"${d.name}" already has a ${isDir(parsed)?'directory':'file'} named "${parsed.name}"`);
+        if(hasEntry(d,parsed,uuidOfObject))throw new DuplicateEntryError(`"${d.name}" already has a ${isDir(parsed)?'directory':'file'} named "${label(parsed)}"`);
         return{...d,data:{...d.data,[uuidOfObject]:parsed}};
       }));
     },
-    moveFilesystemObject:(fromPath:string[],uuidOfObject:string,toPath:string[]):void=>{
-      const entry=resolve(fs,fromPath).data[uuidOfObject];
-      if(!entry)throw new FileNotFoundError(`no entry with uuid ${uuidOfObject} in "${resolve(fs,fromPath).name}"`);
+    moveFilesystemObject:(fromPath:string[],uuidOfObject:string,toPath:string[],newAttributes?:Partial<mbfs.File>|Partial<mbfs.Directory>):void=>{
+      const src=resolve(fs,fromPath);
+      const found=src.data[uuidOfObject];
+      if(!found)throw new FileNotFoundError(`no entry with uuid ${uuidOfObject} in "${src.name}"`);
+      const entry=newAttributes===undefined
+        ?found
+        :isDir(found)
+          ?dir.parse({...found,...newAttributes})
+          :file.parse({...found,...newAttributes});
       const dest=resolve(fs,toPath);
-      if(isDir(entry)&&toPath.length>fromPath.length&&fromPath.every((u,i)=>toPath[i]===u)&&toPath[fromPath.length]===uuidOfObject)
-        throw new InvalidMoveError(`cannot move "${entry.name}" into itself or one of its own subdirectories`);
-      if(fromPath.length===toPath.length&&fromPath.every((u,i)=>toPath[i]===u))return;
-      if(hasName(dest,entry.name,isDir(entry)))throw new DuplicateEntryError(`"${dest.name}" already has a ${isDir(entry)?'directory':'file'} named "${entry.name}"`);
+      if(isDir(entry)&&toPath.length>fromPath.length&&fromPath.every((u,i)=>toPath[i]===u)&&toPath[fromPath.length]===uuidOfObject)throw new InvalidMoveError(`cannot move "${entry.name}" into itself or one of its own subdirectories`);
+      if(entry===found&&fromPath.length===toPath.length&&fromPath.every((u,i)=>toPath[i]===u))return;
+      if(hasEntry(dest,entry,uuidOfObject))throw new DuplicateEntryError(`"${dest.name}" already has a ${isDir(entry)?'directory':'file'} named "${label(entry)}"`);
       const removed=updateAt(fs,fromPath,d=>withoutEntry(d,uuidOfObject));
       commit(updateAt(removed,toPath,d=>({...d,data:{...d.data,[uuidOfObject]:entry}})));
     },

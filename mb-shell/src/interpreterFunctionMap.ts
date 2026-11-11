@@ -96,7 +96,54 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     promise[0](true);
   },
   mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
-
+    const filePath:string[]=args.filter(x=>!x.startsWith("-"));
+    if(filePath.length<2)return promise[1]({
+      name:"InvalidArgumentsError",
+      message:"not enough arguments passed",
+    });
+    const splitName=(n:string)=>{
+      const i=n.lastIndexOf(".");
+      return i>0?[n.slice(0,i),n.slice(i+1)]:[n,""];
+    };
+    const matches=(x:mbfs.File|mbfs.Directory,full:string)=>{
+      const[n,t]=splitName(full);
+      return x.metadata.typeof.directory?x.name===full:x.name===n&&(!t||(x as mbfs.File).type===t);
+    };
+    const cwd=mods.getNamesFromUuids(dirTree);
+    const parsedPathOfSource:string[]=parsePath(filePath[0],cwd);
+    const parsedPathOfDest:string[]=parsePath(filePath[1],cwd);
+    const sourceFullName=parsedPathOfSource.at(-1);
+    if(!sourceFullName)return promise[1]({
+      name:"InvalidArgumentsError",
+      message:`cannot move '${filePath[0]}'`,
+    });
+    const fromUuids=mods.getUuidsFromDirectoryNames(parsedPathOfSource.slice(0,-1));
+    const sourceParent=mods.getDirectoryContents(fromUuids).data;
+    const found=Object.entries(sourceParent).find(([,x])=>matches(x,sourceFullName));
+    if(!found)return promise[1]({
+      name:"NotFoundError",
+      message:`cannot stat '${filePath[0]}': No such file or directory`,
+    });
+    const[uuid,original]=found;
+    const isDir=original.metadata.typeof.directory;
+    if((!original.metadata.access.write.users||original.metadata.typeof.system)&&!sudo)
+      throw new OperationRequiresRootError(`Operation requires root`);
+    const destDirUuids=(():string[]|undefined=>{try{return mods.getUuidsFromDirectoryNames(parsedPathOfDest)}catch{return undefined}})();
+    const toUuids=destDirUuids??mods.getUuidsFromDirectoryNames(parsedPathOfDest.slice(0,-1));
+    let rename:Partial<mbfs.File>|Partial<mbfs.Directory>|undefined;
+    if(!destDirUuids){
+      const destFullName=parsedPathOfDest.at(-1)!;
+      const[n,t]=splitName(destFullName);
+      rename=isDir?{name:destFullName}:{name:n,type:t||(original as mbfs.File).type};
+    }
+    try{mods.moveFilesystemObject(fromUuids,uuid,toUuids,rename)}
+    catch(e){
+      return promise[1]({
+        name:(e as Error).name,
+        message:(e as Error).message,
+      });
+    }
+    promise[0](true);
   },
   read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[])=>{
     // > potential usage
