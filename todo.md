@@ -5,7 +5,6 @@
 
 
 ## mb-fs2
-- make function to move files and swap file uuids (should be easy)
 - block 2 files with the same name in same dir: file.txt file (1).txt
 - Add function to get file contents from a uuid getFileContentsFromUuid
 - Add function to get file contents from file name getFileContentsFromFileName 
@@ -19,7 +18,6 @@
 - implement commands
   - grep
   - rmdir
-  - mv
 - Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
 - Add to mkdir to allow it to create directories from anywhere
 - shell file scripts will not properly use redirect operators
