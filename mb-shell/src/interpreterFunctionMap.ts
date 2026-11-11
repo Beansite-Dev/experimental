@@ -281,6 +281,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     promise[0](true);
   },
   mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,name:string):void=>{
+    
     mods.createDirectory(dirTree,{
       name,
       data:{},
@@ -307,8 +308,8 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
           system:false,
           directory:true,
           executable:false
-        }
-      }
+        },
+      },
     });
     promise[0](true);
   },
