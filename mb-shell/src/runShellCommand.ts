@@ -171,7 +171,6 @@ export const runShellCommand=(
     const newFilePath=mods.getUuidsFromDirectoryNames(path.slice(0,-1));
     const name=path.slice(-1)[0].split(".")[0];
     const type=path.slice(-1)[0].split(".")[1]||"";
-    //redirecting into a file that already exists overwrites it instead of making a duplicate
     const existing=Object.entries(mods.getDirectoryContents(newFilePath).data).find(([,x])=>!x.metadata.typeof.directory&&x.name===name&&(x as mbfs.File).type===type);
     if(existing)mods.modifyFilesysteObjectAttributes(newFilePath,existing[0],{
       data:captured.join("\n"),

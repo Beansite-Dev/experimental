@@ -1,21 +1,14 @@
 import { useAtom } from 'jotai';
 import { dir, file, fsAtom, type mbfs } from './atom.js';
 import { useMemo, useRef, useState } from "react";
-import { DirectoryNotFoundError, FileNotFoundError, FilesystemObjectTypeError } from './exceptions.js';
+import{ 
+  DuplicateEntryError, 
+  InvalidMoveError, 
+  DirectoryNotFoundError, 
+  FileNotFoundError,
+  FilesystemObjectTypeError
+}from './exceptions.js';
 import { v4 as uuidv4 } from 'uuid';
-//new errors, move these into exceptions.ts if you want them alongside the others
-export class DuplicateEntryError extends Error{
-  constructor(message:string){
-    super(message);
-    this.name='DuplicateEntryError';
-  }
-}
-export class InvalidMoveError extends Error{
-  constructor(message:string){
-    super(message);
-    this.name='InvalidMoveError';
-  }
-}
 export type modTypes={
   //directory movement
   enterDirectoryFromScope:(uuid:string)=>void;
@@ -28,7 +21,6 @@ export type modTypes={
   getNamesFromUuids:(uuids:string[])=>string[];
   getFileSystem:()=>mbfs.Directory;
   getDirectoryContents:(path:string[])=>mbfs.Directory;
-  //always the newest scope/tree (uuids), even between a mods call and the re-render it causes
   getCurrentScope:()=>mbfs.Directory;
   getCurrentDirTree:()=>string[];
   //modifiers (create* return the uuid of the new entry)
@@ -39,16 +31,13 @@ export type modTypes={
   modifyFilesysteObjectAttributes:(path:string[],uuidOfFile:string,newAttributes:Partial<mbfs.File>|Partial<mbfs.Directory>)=>void;
   moveFilesystemObject:(fromPath:string[],uuidOfObject:string,toPath:string[],newAttributes?:Partial<mbfs.File>|Partial<mbfs.Directory>)=>void;
 };
-//pure helpers
 const isDir=(n:mbfs.File|mbfs.Directory):n is mbfs.Directory=>!!n.metadata.typeof.directory;
-//one step down into a directory
 const child=(d:mbfs.Directory,uuid:string):mbfs.Directory=>{
   const n=d.data[uuid];
   if(!n)throw new DirectoryNotFoundError(`no entry with uuid ${uuid} in "${d.name}"`);
   if(!isDir(n))throw new FilesystemObjectTypeError(`"${n.name}" (${uuid}) is a file, not a directory`);
   return n;
 };
-//every directory visited while following path (root excluded)
 const trail=(root:mbfs.Directory,path:string[]):mbfs.Directory[]=>{
   const out:mbfs.Directory[]=[];
   let d=root;
@@ -59,7 +48,6 @@ const trail=(root:mbfs.Directory,path:string[]):mbfs.Directory[]=>{
   return out;
 };
 const resolve=(root:mbfs.Directory,path:string[]):mbfs.Directory=>path.reduce((d,u)=>child(d,u),root);
-//longest part of path that still exists in root, same reference back when nothing was cut
 const validPrefix=(root:mbfs.Directory,path:string[]):string[]=>{
   const out:string[]=[];
   let d=root;
@@ -71,7 +59,6 @@ const validPrefix=(root:mbfs.Directory,path:string[]):string[]=>{
   }
   return out.length===path.length?path:out;
 };
-//immutably rebuild root with fn applied to the directory at path
 const updateAt=(root:mbfs.Directory,path:string[],fn:(d:mbfs.Directory)=>mbfs.Directory):mbfs.Directory=>{
   const go=(d:mbfs.Directory,i:number):mbfs.Directory=>{
     const u=path[i];
@@ -80,7 +67,6 @@ const updateAt=(root:mbfs.Directory,path:string[],fn:(d:mbfs.Directory)=>mbfs.Di
   };
   return go(root,0);
 };
-//files are told apart by name AND type (a.txt and a.md can coexist), directories by name only
 const sameEntry=(a:mbfs.File|mbfs.Directory,b:mbfs.File|mbfs.Directory):boolean=>isDir(a)===isDir(b)&&a.name===b.name&&(isDir(a)||(a as mbfs.File).type===(b as mbfs.File).type);
 const hasEntry=(d:mbfs.Directory,entry:mbfs.File|mbfs.Directory,ignoreUuid?:string):boolean=>Object.entries(d.data).some(([k,v])=>k!==ignoreUuid&&sameEntry(v,entry));
 const label=(e:mbfs.File|mbfs.Directory):string=>isDir(e)?e.name:`${e.name}.${(e as mbfs.File).type}`;
@@ -109,11 +95,9 @@ export const useFileSystem=():[
 ]=>{
   const[fs,setFs]=useAtom(fsAtom);
   const[dirTree,setDirTree]=useState<string[]>([]);
-  //refs hold the newest values even before the re-render a mods call causes, so chained calls (cd a && ls) never see stale state
   const fsRef=useRef(fs);
   const dirTreeRef=useRef(dirTree);
   fsRef.current=fs;
-  //scope is derived so it can never go stale, and a deleted/moved directory falls back to its nearest surviving ancestor
   const tree=useMemo(()=>validPrefix(fs,dirTree),[fs,dirTree]);
   const scope=useMemo(()=>resolve(fs,tree),[fs,tree]);
   const treeNow=():string[]=>validPrefix(fsRef.current,dirTreeRef.current);
@@ -172,7 +156,6 @@ export const useFileSystem=():[
       return add(path,parsed);
     },
     deleteFilesystemObject:(path:string[],uuidOfFile:string):void=>{
-      // replace with deleteFile and deleteDirectory and make deleteFile account for types -Zach
       commit(updateAt(fsRef.current,path,d=>{
         if(!d.data[uuidOfFile])throw new FileNotFoundError(`No present entry with uuid ${uuidOfFile} in "${d.name}"`);
         return withoutEntry(d,uuidOfFile);
@@ -189,8 +172,6 @@ export const useFileSystem=():[
         return{...d,data:{...d.data,[uuidOfObject]:parsed}};
       }));
     },
-    //keeps the uuid, so anything referencing the entry stays valid
-    //newAttributes (name/type) are applied in the same commit as the move
     moveFilesystemObject:(fromPath:string[],uuidOfObject:string,toPath:string[],newAttributes?:Partial<mbfs.File>|Partial<mbfs.Directory>):void=>{
       const root=fsRef.current;
       const src=resolve(root,fromPath);

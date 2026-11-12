@@ -30,8 +30,6 @@ export const useShell=():[
     dirTree,
     mods,
   ]=useFileSystem();
-  //the interpreter is async, so anything it captured from a render is stale by the time a later command in the chain runs
-  //these refs always hold the newest logs/vars, and mods.getCurrentScope/getCurrentDirTree always hold the newest scope/tree
   const logsRef=useRef(logs);
   const varsRef=useRef(vars);
   logsRef.current=logs;
@@ -44,13 +42,8 @@ export const useShell=():[
     varsRef.current=typeof update==="function"?update(varsRef.current):update;
     setVars(update);
   };
-  // const store=getDefaultStore();//no longer needed
-  //filesystem is persistent but scope is not. Perfect for this ComponentPropsWithRef
   const textAreaRef=useRef<HTMLTextAreaElement>(null);
-  //what was typed before browsing history with the arrow keys, so arrowing back down gets it back
   const draft=useRef<string>("");
-  //tab completion: commands where a command goes, otherwise the entries of the directory being typed
-  //prints the options when there are several and nothing more can be filled in
   const complete=(ta:HTMLTextAreaElement):void=>{
     const before=ta.value.slice(0,ta.selectionStart);
     const after=ta.value.slice(ta.selectionStart);
@@ -158,7 +151,6 @@ export const useShell=():[
         const value=e.currentTarget.value;
         draft.current="";
         setPositionInCommandHistory(-1);
-        //blank lines and repeats of the previous command stay out of the history
         if(value.trim()&&value!==commandHistory[0])setCommandHistory(x=>[value,...x]);
         interpreter(value,true).catch(console.error);
         e.currentTarget.value="";
@@ -201,7 +193,6 @@ export const useShell=():[
           ]);
           active.current++;
           setRunning(true);
-          //read scope/tree/logs/vars right as the command starts so a previous command in the chain (cd, mkdir, x=1) is already reflected
           const p:Promise<boolean>=runShellCommand(
             sub,mods.getCurrentScope(),mods,logsRef.current,setLogsLatest,mods.getCurrentDirTree(),interpreter,varsRef.current,setVarsLatest,keyboardInputBuffer,signal,
           ).finally(()=>{
