@@ -41,7 +41,7 @@ export const runShellCommand=(
     if(signal.aborted)return reject(abortError);
     onAbort=()=>reject(abortError);
     signal.addEventListener("abort",onAbort,{once:true});
-    if(!args[0])resolve(true);
+    if(!args[0])return resolve(true);
     // > ex usage of keyboardInputBuffer getter func
     // console.log("recieved value from promise",keyboardInputBuffer.getValue());
     if(iOfRedirOp===0)return reject({
@@ -63,9 +63,9 @@ export const runShellCommand=(
           setLogs(x=>[...x,
             {t:"l",m:vars.filter(x=>x.name==args[0].slice(1))[0].value},
           ]);
-          resolve(true);
+          return resolve(true);
         }else{
-          reject({
+          return reject({
             name:"VariableNotFoundError",
             message:`Variable ${args[0].slice(1)} is not defined. Check ~/.mbshrc to see if it is defined`
           });
@@ -171,7 +171,13 @@ export const runShellCommand=(
     const newFilePath=mods.getUuidsFromDirectoryNames(path.slice(0,-1));
     const name=path.slice(-1)[0].split(".")[0];
     const type=path.slice(-1)[0].split(".")[1]||"";
-    mods.createFile(newFilePath,{
+    //redirecting into a file that already exists overwrites it instead of making a duplicate
+    const existing=Object.entries(mods.getDirectoryContents(newFilePath).data).find(([,x])=>!x.metadata.typeof.directory&&x.name===name&&(x as mbfs.File).type===type);
+    if(existing)mods.modifyFilesysteObjectAttributes(newFilePath,existing[0],{
+      data:captured.join("\n"),
+      metadata:{...existing[1].metadata,date:{...existing[1].metadata.date,modified:now,},},
+    });
+    else mods.createFile(newFilePath,{
       name,type,
       data:captured.join("\n"),
       metadata:{

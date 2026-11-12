@@ -18,7 +18,6 @@
 - implement commands
   - grep
   - rmdir
-- Scope also is not persistent for chained commands (such as `cd Programs; mkdir blah`) but this doesnt matter
 - Add to mkdir to allow it to create directories from anywhere
 - shell file scripts will not properly use redirect operators
 
