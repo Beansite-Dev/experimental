@@ -4,6 +4,7 @@ import { SetStateAction } from "jotai";
 import { useShell } from "./hook";
 import { mbsh } from "./store";
 import { functionMap } from "./interpreterFunctionMap";
+import { runJsScripts } from "./runJsScripts";
 export const runShellCommand=(
   command:mbsh.ShellCommand,
   scope:mbfs.Directory,
@@ -137,6 +138,14 @@ export const runShellCommand=(
           console.log(`found pointer for command ${possibleFileName}||${filePointer.name} in relatively in ${pathOfInput}`);
           if(["bat","sh"].includes((filePointer as mbfs.File).type))
             return interpreter(String(filePointer.data),false).then(()=>resolve(true),reject);
+          if(["js"].includes((filePointer as mbfs.File).type)){
+            return runJsScripts(
+              String(filePointer.data),
+              scope,mods,logs,setLogs,
+              dirTree,vars,setVars,keyboardInputBuffer,
+              signal
+            ).then(()=>resolve(true)).catch((e)=>reject(e));
+          }
           return resolve(true);
         }else return reject({
           name:"CommandNotFoundError",
