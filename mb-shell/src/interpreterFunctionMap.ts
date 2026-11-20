@@ -420,10 +420,11 @@ export const functionMap:Record<string,shellFunction>={
   "":()=>{},
   help:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,)=>{
     setLogs(x=>[...x,
-      {t:"l",m:"Available commands:"},
+      {t:"l",m:"Available commands:"},{t:"nl"},
       ...Object.keys(functionMapBase)
-        .map((x):logs.LogType=>{return{t:"l",m:`  - ${x}`,}})
+        .flatMap((x):logs.LogType[]=>{return[{t:"l",m:`  - ${x}`,},{t:"nl"}]})
     ]);
+    promise[0](true);
   },
   dir: functionMapBase.ls!,
   clear: functionMapBase.cls!,
