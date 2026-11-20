@@ -5,10 +5,6 @@
 
 
 ## mb-fs2
-- block 2 files with the same name in same dir: file.txt file (1).txt
-- Add function to get file contents from a uuid getFileContentsFromUuid
-- Add function to get file contents from file name getFileContentsFromFileName 
-- Fix file querying functions (like getUuidsFromFileNames) 
 
 
 ## mb-shell
