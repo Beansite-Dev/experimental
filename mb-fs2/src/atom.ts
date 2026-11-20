@@ -77,5 +77,10 @@ export const fsAtom=atom<mbfs.Directory>(mkDir("root",{
       [uuidv4()]:mkDir(".config",{},meta("root",true,true)),
     },meta("administrator",false,true)),
   },meta("root",true,true)),
-  [uuidv4()]:mkFile("README","txt","string or blob go here",meta("administrator",false,false)),
+  [uuidv4()]:mkFile(
+    "README",
+    "txt",
+    "string or blob go here",
+    meta("administrator",false,false)
+  ),
 },meta("system",true,true,false,true)));
