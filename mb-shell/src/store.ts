@@ -15,9 +15,11 @@ export declare namespace mbsh {
   interface NewLineShellCommand extends ShellCommandBase{invoker:"newline";}
   interface SingleAmpersandCommand extends ShellCommandBase{invoker:"&";}
   interface DoubleAmpersandCommand extends ShellCommandBase{invoker:"&&";}
+  interface BarCommand extends ShellCommandBase{invoker:"|";}
   interface FileOriginShellCommand extends ShellCommandBase{invoker:"file";}
   interface SubstitutionOriginShellCommand extends ShellCommandBase{invoker:"substitution";}
   type ShellCommand=StandardShellCommand
+    |BarCommand
     |FileOriginShellCommand
     |NewLineShellCommand
     |SubstitutionOriginShellCommand

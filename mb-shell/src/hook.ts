@@ -50,7 +50,7 @@ export const useShell=():[
     const tokenStart=Math.max(before.lastIndexOf(" "),before.lastIndexOf("\n"))+1;
     const token=before.slice(tokenStart);
     const prev=before.slice(0,tokenStart).trim().split(/\s+/).at(-1)||"";
-    const isCommand=["","sudo","&&","&",";"].includes(prev);
+    const isCommand=["","sudo","&&","&","|",";"].includes(prev);
     const slash=isCommand?-1:token.lastIndexOf("/");
     const prefix=token.slice(0,slash+1);
     const base=token.slice(slash+1);
@@ -179,10 +179,14 @@ export const useShell=():[
       for(const command of commands){
         if(signal.aborted)break;
         let ok:boolean=true;
+        let pipeData:string|undefined;
         for(let i=0;i<command.length;i++){
           if(signal.aborted)break;
           const sub=command[i];
           const next:string|undefined=command[i+1]?.invoker;
+          const stdin:string|undefined=sub.invoker==="|"?(pipeData??""):undefined;
+          pipeData=undefined;
+          console.log("run",sub.subcommand,"| invoker:",sub.invoker,"| after:",next,"| stdin:",stdin);
           if(sub.invoker==="&&"&&!ok){console.log("skip",sub.subcommand);continue;}
           if(echo)setLogsLatest(x=>[...x,
             {t:"nl"},
@@ -195,6 +199,8 @@ export const useShell=():[
           setRunning(true);
           const p:Promise<boolean>=runShellCommand(
             sub,mods.getCurrentScope(),mods,logsRef.current,setLogsLatest,mods.getCurrentDirTree(),interpreter,varsRef.current,setVarsLatest,keyboardInputBuffer,signal,
+            stdin,
+            next==="|"?t=>{pipeData=t;}:undefined,
           ).finally(()=>{
             active.current--;
             setRunning(active.current>0);

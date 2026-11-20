@@ -103,6 +103,12 @@ export const parseShell=(code:string):mbsh.ShellCommand[][]=>
           buffer="";
           continue;
         }
+        //single "|" is a pipe, "||" is left as literal text since it isn't implemented
+        if(c==="|"&&line[k+1]!=="|"&&line[k-1]!=="|"){
+          parts.push({subcommand:buffer.trim(),invoker:"|"});
+          buffer="";
+          continue;
+        }
         buffer+=c;
       }
       parts.push({subcommand:buffer.trim(),invoker:""});

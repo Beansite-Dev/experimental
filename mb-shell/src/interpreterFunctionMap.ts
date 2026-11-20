@@ -16,10 +16,11 @@ type shellFunction=(
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   keyboardInputBuffer:{getValue:()=>string[]},
   signal:AbortSignal,
+  stdin:string|undefined,
   ...args:string[]
 )=>void;
 export const functionMapBase:{[key:string]:shellFunction|void;}={
-  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,inputPath:string):void=>{
+  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,inputPath:string):void=>{
     //f=arrOfFileNames (shortened cuz my keyboard is ass)
     let parsed:string[];
     let f:string[]=parsePath(inputPath,mods.getNamesFromUuids(dirTree));
@@ -30,11 +31,11 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     ]);
     promise[0](true);
   },
-  wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,time)=>{
+  wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,time)=>{
     const t=setTimeout(()=>promise[0](true),parseInt(time));
     signal.addEventListener("abort",()=>clearTimeout(t),{once:true});
   },
-  cp:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
+  cp:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,stdin,...args)=>{
     const filePath:string[]=args.filter(x=>!x.startsWith("-"));
     if(filePath.length<2)return promise[1]({
       name:"InvalidArgumentsError",
@@ -95,7 +96,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     else mods.createFile(parentOfCopyUuids,copy as mbfs.File);
     promise[0](true);
   },
-  grep:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
+  grep:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
     const[pattern,...targets]=args.filter(x=>!x.startsWith("-"));
     const has=(f:string):boolean=>flags.includes(f);
@@ -103,7 +104,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       name:"InvalidGrepUsage",
       message:"usage: grep [-icnvlwrF] pattern [file ...]",
     });
-    if(!targets.length&&!has("r"))return promise[1]({
+    if(!targets.length&&!has("r")&&stdin===undefined)return promise[1]({
       name:"InvalidGrepUsage",
       message:"no input files given",
     });
@@ -126,9 +127,9 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
             :true)));
       return key?dir.data[key]:undefined;
     };
-    const grepFile=(label:string,file:mbfs.File,multi:boolean):void=>{
+    const grepText=(label:string,text:string,multi:boolean):void=>{
       const hits:string[]=[];
-      String(file.data).split("\n").forEach((l,i)=>{
+      text.split("\n").forEach((l,i)=>{
         if(re.test(l)===has("v"))return;
         hits.push(`${multi?`${label}:`:""}${has("n")?`${i+1}:`:""}${l}`);
       });
@@ -136,23 +137,27 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       else if(has("l")){if(hits.length)out.push(label);}
       else out.push(...hits);
     };
+    const grepFile=(label:string,file:mbfs.File,multi:boolean):void=>grepText(label,String(file.data),multi);
     const walk=(label:string,entry:mbfs.File|mbfs.Directory,multi:boolean):void=>{
       if(!entry.metadata.typeof.directory)return grepFile(label,entry as mbfs.File,multi);
       if(!has("r"))return void out.push(`grep: ${label}: Is a directory`);
       Object.values((entry as mbfs.Directory).data).forEach(c=>walk(`${label.replace(/\/$/,"")}/${labelOf(c)}`,c,true));
     };
     try{
-      const list:string[]=targets.length?targets:["./"];
-      const multi:boolean=list.length>1||has("r");
-      for(const t of list){
-        const path:string[]=parsePath(t,names);
-        const parent:string[]=path.slice(0,-1);
-        const entry=path.length?find(mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(parent)),path.slice(-1)[0]):undefined;
-        if(entry)walk(t,entry,multi);
-        else{
-          //"." / ".." / root resolve to a directory path rather than a child entry
-          try{walk(t,mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(path)),multi);}
-          catch{out.push(`grep: ${t}: No such file or directory`);}
+      if(!targets.length&&!has("r")&&stdin!==undefined)grepText("(standard input)",stdin,false);
+      else{
+        const list:string[]=targets.length?targets:["./"];
+        const multi:boolean=list.length>1||has("r");
+        for(const t of list){
+          const path:string[]=parsePath(t,names);
+          const parent:string[]=path.slice(0,-1);
+          const entry=path.length?find(mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(parent)),path.slice(-1)[0]):undefined;
+          if(entry)walk(t,entry,multi);
+          else{
+            //"." / ".." / root resolve to a directory path rather than a child entry
+            try{walk(t,mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(path)),multi);}
+            catch{out.push(`grep: ${t}: No such file or directory`);}
+          }
         }
       }
     }catch(e){
@@ -163,7 +168,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     ]);
     promise[0](true);
   },
-  mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
+  mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,stdin,...args)=>{
     const filePath:string[]=args.filter(x=>!x.startsWith("-"));
     if(filePath.length<2)return promise[1]({
       name:"InvalidArgumentsError",
@@ -213,13 +218,13 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     }
     promise[0](true);
   },
-  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[])=>{
+  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[])=>{
     // > potential usage
     // read -p "Enter your name: " user_name
     // echo "Hello, $user_name!"
     
   },
-  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
+  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
     // new ls post rework
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0]||"./";
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
@@ -268,7 +273,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     ]);promise[0](true);}
   },
   cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](true);},
-  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,fileName:string):void=>{
+  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,fileName:string):void=>{
     const name=fileName.split(".")[0];
     const type=fileName.split(".")[1]||"txt";
     mods.createFile(dirTree,{
@@ -303,7 +308,12 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     });
     promise[0](true);
   },
-  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,filePath):void=>{
+  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,filePath):void=>{
+    //no file given but something was piped in: pass it through
+    if(!filePath&&stdin!==undefined){
+      setLogs(x=>[...x,{t:"l",m:stdin}]);
+      return promise[0](true);
+    }
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     const parent=parsedPath.slice(0,-1);
     const name=parsedPath.slice(-1)[0];
@@ -318,7 +328,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     setLogs(x=>[...x,{t:"l",m}]);
     promise[0](true);
   },
-  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,filePath):void=>{
+  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
@@ -335,7 +345,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       promise[0](true);
     }
   },
-  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,newval,file)=>{
+  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,newval,file)=>{
     const parsedPath:string[]=parsePath(file,mods.getNamesFromUuids(dirTree));
     const newFilePath=parsedPath.slice(0,-1);
     const newFileName=parsedPath.slice(-1)[0];
@@ -423,7 +433,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     promise[0](true);
   },
-  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
+  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0];
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
     const path:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
@@ -439,7 +449,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
     promise[0](true);
   },
-  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,name:string):void=>{
+  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,name:string):void=>{
     
     mods.createDirectory(dirTree,{
       name,
@@ -473,7 +483,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     promise[0](true);
   },
   whoami:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](true)},
-  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
+  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](true);
   }

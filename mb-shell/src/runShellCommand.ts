@@ -16,7 +16,9 @@ export const runShellCommand=(
   vars:mbsh.ShellVariable[],
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   keyboardInputBuffer:{getValue:()=>string[]},
-  signal:AbortSignal
+  signal:AbortSignal,
+  stdin?:string,
+  onPipe?:(text:string)=>void,
 ):Promise<boolean>=>{
   const parsedCommand:string[]=(command.subcommand.trim().match(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g)||[]).map(s=>/^["']/.test(s)?s.slice(1,-1).replace(/\\(["'])/g,"$1"):s);
   const iOfRedirOp:number=parsedCommand.indexOf(">");
@@ -27,6 +29,7 @@ export const runShellCommand=(
   const captured:string[]=[];
   let mirror:logs.LogType[]=logs;
   let line:string="";
+  //stdout: always captured (for ">" and "|"), only shown on screen when not piped
   const setLogsWithLogger=(update:SetStateAction<logs.LogType[]>):void=>{
     const next=typeof update==="function"?update(mirror):update;
     for(const entry of next.slice(mirror.length)){
@@ -34,7 +37,7 @@ export const runShellCommand=(
       else if("m" in entry)line+=entry.m??"";
     };
     mirror=next;
-    setLogs(update);
+    if(!onPipe)setLogs(update);
   };
   let onAbort:(()=>void)|undefined;
   return new Promise<boolean>((resolve,reject)=>{
@@ -61,7 +64,7 @@ export const runShellCommand=(
     if(!fn){
       if(args[0][0]=="$"){
         if(vars.map(x=>x.name).includes(args[0].slice(1))){
-          setLogs(x=>[...x,
+          setLogsWithLogger(x=>[...x,
             {t:"l",m:vars.filter(x=>x.name==args[0].slice(1))[0].value},
           ]);
           return resolve(true);
@@ -101,7 +104,7 @@ export const runShellCommand=(
           const value:string=raw.replace(/\$\(([^)]+)\)/g,()=>outs[i++]);
           setVars(x=>[...x.filter(v=>v.name!==name),{name,value}]);
           resolve(true);
-        });
+        }).catch(reject);
         return;
       }
       const bin:mbfs.Directory=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(["bin"]));
@@ -169,9 +172,15 @@ export const runShellCommand=(
       setVars,
       keyboardInputBuffer,
       signal,
+      stdin,
       ...args.slice(1)
     );
   }).then(()=>{
+    if(onPipe){
+      if(line)captured.push(line);
+      line="";
+      onPipe(captured.join("\n"));
+    }
     if(!outputPath)return true;
     if(line)captured.push(line);
     const now=new Date();
