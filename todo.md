@@ -9,6 +9,7 @@
 
 ## mb-shell
 - use `.toml` files under `/.config` or `~/.config`
+- add `|` syntax, allowing query commands to pass to grep
 - implement commands
   - grep
   - rmdir

@@ -95,6 +95,10 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     else mods.createFile(parentOfCopyUuids,copy as mbfs.File);
     promise[0](true);
   },
+  grep:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
+    const flags=args[0][0]=="-"
+
+  },
   mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
     const filePath:string[]=args.filter(x=>!x.startsWith("-"));
     if(filePath.length<2)return promise[1]({
@@ -414,8 +418,15 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
 export const functionMap:Record<string,shellFunction>={
   ...functionMapBase,
   "":()=>{},
+  help:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,)=>{
+    setLogs(x=>[...x,
+      {t:"l",m:"Available commands:"},
+      ...Object.keys(functionMapBase)
+        .map((x):logs.LogType=>{return{t:"l",m:`  - ${x}`,}})
+    ]);
+  },
   dir: functionMapBase.ls!,
   clear: functionMapBase.cls!,
-  "ll":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,"-l"),
-  "cd..":(command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,".."),
+  ll:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,"-l"),
+  "cd..":(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,".."),
 };
