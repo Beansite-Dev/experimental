@@ -12,7 +12,6 @@
 
 
 ## mb-shell
-- Add number codes to chmod
 - use `.toml` files under `/.config` or `~/.config`
 - implement commands
   - grep

@@ -284,27 +284,71 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       message:`file ${newFileName} as not found in /${newFilePath.join("/")}`
     });
     let metadata={...dir[uuid].metadata,};
-    const indexOfType:number=newval.indexOf("+")<0?newval.indexOf("-"):newval.indexOf("+");
-    const groupArr:string[]=newval[indexOfType]=="+"?newval.split("+"):newval.split("-")[0].split("");
-    const guestMod:boolean=groupArr.includes("g");
-    const userMod:boolean=groupArr.includes("u");
-    const adminMod:boolean=groupArr.includes("a");
-    console.log(groupArr,indexOfType)
-    if(newval[indexOfType]=="+"||newval[indexOfType]=="-"){
-      newval.split("").slice(indexOfType).forEach((x)=>{
+    if(newval.match(/(a|u|g|)\+(x|r|w)+/g)){
+      const indexOfType:number=newval.indexOf("+")<0?newval.indexOf("-"):newval.indexOf("+");
+      const groupArr:string[]=newval[indexOfType]=="+"?newval.split("+"):newval.split("-")[0].split("");
+      const guestMod:boolean=groupArr.includes("g");
+      const userMod:boolean=groupArr.includes("u");
+      const adminMod:boolean=groupArr.includes("a");
+      console.log(groupArr,indexOfType);
+      if(newval[indexOfType]=="+"||newval[indexOfType]=="-"){
+        newval.split("").slice(indexOfType).forEach((x)=>{
+          switch(x){
+            case"r":
+              if(userMod)metadata.access.read.users=newval[indexOfType]=="+";
+              if(guestMod)metadata.access.read.guests=newval[indexOfType]=="+";
+              if(adminMod)metadata.access.read.administrators=newval[indexOfType]=="+";
+            break;
+            case"w":
+              if(userMod)metadata.access.write.users=newval[indexOfType]=="+";
+              if(guestMod)metadata.access.write.guests=newval[indexOfType]=="+";
+              if(adminMod)metadata.access.write.administrators=newval[indexOfType]=="+";
+            break;
+            case"x":metadata.typeof.executable=newval[indexOfType]=="+";break;
+            default:console.log("unknown param for chmod: "+x);
+          }
+        });
+      }
+    }else if(newval.match(/^[0-7]{3}$/)){
+      const permsArr:number[]=newval.split("").map(x=>Number(x)).reverse();
+      permsArr.forEach((x,i)=>{
+        const currentMod=(["guests","users","administrators"])[i]as keyof mbfs.userPerms;
         switch(x){
-          case"r":
-            if(userMod)metadata.access.read.users=newval[indexOfType]=="+";
-            if(guestMod)metadata.access.read.guests=newval[indexOfType]=="+";
-            if(adminMod)metadata.access.read.administrators=newval[indexOfType]=="+";
+          case 7:
+            metadata.access.read[currentMod]=true;
+            metadata.access.write[currentMod]=true;
+            metadata.typeof.executable=true;
           break;
-          case"w":
-            if(userMod)metadata.access.write.users=newval[indexOfType]=="+";
-            if(guestMod)metadata.access.write.guests=newval[indexOfType]=="+";
-            if(adminMod)metadata.access.write.administrators=newval[indexOfType]=="+";
+          case 6:
+            metadata.access.read[currentMod]=true;
+            metadata.access.write[currentMod]=true;
+            metadata.typeof.executable=false;
           break;
-          case"x":metadata.typeof.executable=newval[indexOfType]=="+";break;
-          default:console.log("unknown param for chmod: "+x);
+          case 5:
+            metadata.access.read[currentMod]=true;
+            metadata.access.write[currentMod]=false;
+            metadata.typeof.executable=true;
+          break;
+          case 4:
+            metadata.access.read[currentMod]=true;
+            metadata.access.write[currentMod]=false;
+            metadata.typeof.executable=false;
+          break;
+          case 2:
+            metadata.access.read[currentMod]=false;
+            metadata.access.write[currentMod]=true;
+            metadata.typeof.executable=true;
+          break;
+          case 1:
+            metadata.access.read[currentMod]=false;
+            metadata.access.write[currentMod]=true;
+            metadata.typeof.executable=false;
+          break;
+          case 0:
+            metadata.access.read[currentMod]=false;
+            metadata.access.write[currentMod]=false;
+            metadata.typeof.executable=false;
+          break;
         }
       });
     }
