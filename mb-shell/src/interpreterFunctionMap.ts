@@ -95,9 +95,73 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     else mods.createFile(parentOfCopyUuids,copy as mbfs.File);
     promise[0](true);
   },
-  grep:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
-    const flags=args[0][0]=="-"
-
+  grep:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,...args:string[]):void=>{
+    const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
+    const[pattern,...targets]=args.filter(x=>!x.startsWith("-"));
+    const has=(f:string):boolean=>flags.includes(f);
+    if(pattern===undefined)return promise[1]({
+      name:"InvalidGrepUsage",
+      message:"usage: grep [-icnvlwrF] pattern [file ...]",
+    });
+    if(!targets.length&&!has("r"))return promise[1]({
+      name:"InvalidGrepUsage",
+      message:"no input files given",
+    });
+    let re:RegExp;
+    try{
+      const src=has("F")?pattern.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"):pattern;
+      re=new RegExp(has("w")?`\\b(?:${src})\\b`:src,has("i")?"i":"");
+    }catch{
+      return promise[1]({name:"InvalidPatternError",message:`invalid pattern: ${pattern}`});
+    }
+    const out:string[]=[];
+    const names:string[]=mods.getNamesFromUuids(dirTree);
+    const labelOf=(e:mbfs.File|mbfs.Directory):string=>`${e.name}${e.metadata.typeof.directory?"":`.${(e as mbfs.File).type}`}`;
+    const find=(dir:mbfs.Directory,fileName:string)=>{
+      const key=Object.keys(dir.data).find(x=>
+        dir.data[x].name===fileName
+        ||(dir.data[x].name===fileName.split(".")[0]
+          &&(fileName.split(".")[1]
+            ?(dir.data[x] as mbfs.File).type===fileName.split(".")[1]
+            :true)));
+      return key?dir.data[key]:undefined;
+    };
+    const grepFile=(label:string,file:mbfs.File,multi:boolean):void=>{
+      const hits:string[]=[];
+      String(file.data).split("\n").forEach((l,i)=>{
+        if(re.test(l)===has("v"))return;
+        hits.push(`${multi?`${label}:`:""}${has("n")?`${i+1}:`:""}${l}`);
+      });
+      if(has("c"))out.push(`${multi?`${label}:`:""}${hits.length}`);
+      else if(has("l")){if(hits.length)out.push(label);}
+      else out.push(...hits);
+    };
+    const walk=(label:string,entry:mbfs.File|mbfs.Directory,multi:boolean):void=>{
+      if(!entry.metadata.typeof.directory)return grepFile(label,entry as mbfs.File,multi);
+      if(!has("r"))return void out.push(`grep: ${label}: Is a directory`);
+      Object.values((entry as mbfs.Directory).data).forEach(c=>walk(`${label.replace(/\/$/,"")}/${labelOf(c)}`,c,true));
+    };
+    try{
+      const list:string[]=targets.length?targets:["./"];
+      const multi:boolean=list.length>1||has("r");
+      for(const t of list){
+        const path:string[]=parsePath(t,names);
+        const parent:string[]=path.slice(0,-1);
+        const entry=path.length?find(mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(parent)),path.slice(-1)[0]):undefined;
+        if(entry)walk(t,entry,multi);
+        else{
+          //"." / ".." / root resolve to a directory path rather than a child entry
+          try{walk(t,mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(path)),multi);}
+          catch{out.push(`grep: ${t}: No such file or directory`);}
+        }
+      }
+    }catch(e){
+      return promise[1]({name:"GrepError",message:(e as Error).message});
+    }
+    setLogs(x=>[...x,
+      ...out.flatMap((m,i):logs.LogType[]=>[...(i>0?[{t:"nl"}as logs.LogType]:[]),{t:"l",m}]),
+    ]);
+    promise[0](true);
   },
   mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,...args)=>{
     const filePath:string[]=args.filter(x=>!x.startsWith("-"));
