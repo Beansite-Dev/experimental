@@ -418,7 +418,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
 export const functionMap:Record<string,shellFunction>={
   ...functionMapBase,
   "":()=>{},
-  help:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,)=>{
+  help:(_1,_2,_3,setLogs,promise,)=>{
     setLogs(x=>[...x,
       {t:"l",m:"Available commands:"},{t:"nl"},
       ...Object.keys(functionMapBase)
@@ -428,6 +428,6 @@ export const functionMap:Record<string,shellFunction>={
   },
   dir: functionMapBase.ls!,
   clear: functionMapBase.cls!,
-  ll:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.ls?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,"-l"),
-  "cd..":(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,)=>functionMapBase.cd?.(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,".."),
+  ll:(...args)=>functionMapBase.ls?.(...args,"-l"),
+  "cd..":(...args)=>functionMapBase.cd?.(...args,".."),
 };
