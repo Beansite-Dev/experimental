@@ -12,7 +12,6 @@
 - implement commands
   - rmdir
   - curl (using libcurl)
-- Add to mkdir to allow it to create directories from anywhere
 - shell file scripts will not properly use redirect operators
 
 

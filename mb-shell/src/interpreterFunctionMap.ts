@@ -449,9 +449,17 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
     promise[0](true);
   },
-  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,name:string):void=>{
-    
-    mods.createDirectory(dirTree,{
+  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+    const targets:string[]=args.filter(x=>!x.startsWith("-"));
+    const flags=new Set(args.filter(x=>x.startsWith("-")).flatMap(x=>x.startsWith("--")?[x.slice(2)]:x.slice(1).split("")));
+    const parents:boolean=flags.has("p")||flags.has("parents");
+    if(!targets.length)return promise[1]({
+      name:"InvalidArgumentsError",
+      message:"missing operand",
+    });
+    const cwd:string[]=mods.getNamesFromUuids(dirTree);
+    const fail=(name:string,message:string)=>Object.assign(new Error(message),{name});
+    const makeDir=(name:string):mbfs.Directory=>({
       name,
       data:{},
       metadata:{
@@ -480,6 +488,38 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
         },
       },
     });
+    const findDir=(parent:string[],name:string)=>Object.values(
+      mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(parent)).data
+    ).find(x=>x.name===name&&x.metadata.typeof.directory);
+    try{
+      for(const t of targets){
+        const path:string[]=parsePath(t,cwd);
+        if(!path.length){
+          if(parents)continue;
+          throw fail("FileExistsError",`cannot create directory '${t}': File exists`);
+        }
+        if(parents){
+          //create every missing segment along the way
+          path.forEach((name,i)=>{
+            const parent=path.slice(0,i);
+            if(!findDir(parent,name))mods.createDirectory(mods.getUuidsFromDirectoryNames(parent),makeDir(name));
+          });
+          continue;
+        }
+        const parent:string[]=path.slice(0,-1);
+        const name:string=path.at(-1)!;
+        let parentUuids:string[];
+        try{parentUuids=mods.getUuidsFromDirectoryNames(parent)}
+        catch{throw fail("NotFoundError",`cannot create directory '${t}': No such file or directory`)}
+        if(findDir(parent,name))throw fail("FileExistsError",`cannot create directory '${t}': File exists`);
+        mods.createDirectory(parentUuids,makeDir(name));
+      }
+    }catch(e){
+      return promise[1]({
+        name:(e as Error).name,
+        message:(e as Error).message,
+      });
+    }
     promise[0](true);
   },
   whoami:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](true)},
