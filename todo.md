@@ -9,9 +9,7 @@
 
 ## mb-shell
 - use `.toml` files under `/.config` or `~/.config`
-- add `|` syntax, allowing query commands to pass to grep
 - implement commands
-  - grep
   - rmdir
   - curl (using libcurl)
 - Add to mkdir to allow it to create directories from anywhere
