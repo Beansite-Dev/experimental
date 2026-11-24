@@ -12,6 +12,9 @@
 - implement commands
   - rmdir
   - curl (using libcurl)
+  - Create a package manager that can fetch from a github repo
+    - put neofetch under that repo so it has to be installed
+    - simply make the package manager put sh files in bin
 - shell file scripts will not properly use redirect operators
 
 
