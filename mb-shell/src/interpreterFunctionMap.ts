@@ -4,6 +4,12 @@ import { SetStateAction } from "jotai/vanilla";
 import { parseLog } from "./logs";
 import { InvalidArgumentsError, OperationRequiresRecursiveFlagError, OperationRequiresRootError } from "./exceptions";
 import { mbsh } from "./store";
+import { libcurl } from "libcurl.js/bundled";
+let curlReady:Promise<void>|undefined;
+const getCurl=()=>curlReady??=(async()=>{
+  await libcurl.load_wasm();
+  libcurl.set_websocket("wss://wisp.mercurywork.shop/");
+})();
 type shellFunction=(
   command:string,
   scope:mbfs.Directory,
@@ -95,6 +101,106 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     if(isDir)mods.createDirectory(parentOfCopyUuids,copy as mbfs.Directory);
     else mods.createFile(parentOfCopyUuids,copy as mbfs.File);
     promise[0](true);
+  },
+  curl:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+    let url:string|undefined,method:string|undefined,body:string|undefined,out:string|undefined,user:string|undefined;
+    let include=false,head=false,follow=false;
+    const headers:Record<string,string>={};
+    const q=[...args];
+    while(q.length){
+      const a=q.shift()!;
+      //expand combined short flags: -sL => -s -L
+      if(/^-[a-zA-Z]{2,}$/.test(a)){q.unshift(...a.slice(1).split("").map(c=>"-"+c));continue}
+      switch(a){
+        case"-X":case"--request":method=q.shift();break;
+        case"-H":case"--header":{
+          const s=q.shift()??"";
+          const c=s.indexOf(":");
+          if(c>0)headers[s.slice(0,c).trim()]=s.slice(c+1).trim();
+        break}
+        case"-d":case"--data":case"--data-raw":body=(body===undefined?"":body+"&")+(q.shift()??"");break;
+        case"-u":case"--user":user=q.shift();break;
+        case"-A":case"--user-agent":headers["User-Agent"]=q.shift()??"";break;
+        case"-o":case"--output":out=q.shift();break;
+        case"-i":case"--include":include=true;break;
+        case"-I":case"--head":head=true;break;
+        case"-L":case"--location":follow=true;break;
+        case"-s":case"--silent":break;
+        default:
+          if(a.startsWith("-"))return promise[1]({name:"InvalidArgumentsError",message:`unknown option: ${a}`});
+          url=a;
+      }
+    }
+    if(!url&&stdin!==undefined)url=stdin.trim();
+    if(!url)return promise[1]({
+      name:"InvalidArgumentsError",
+      message:"usage: curl [-X method] [-H header] [-d data] [-u user:pass] [-A agent] [-iILs] [-o file] url",
+    });
+    if(!/^[a-z]+:\/\//i.test(url))url=`https://${url}`;
+    if(user)headers["Authorization"]=`Basic ${btoa(user)}`;
+    if(body!==undefined&&!Object.keys(headers).some(k=>k.toLowerCase()==="content-type"))
+      headers["Content-Type"]="application/x-www-form-urlencoded";
+    const finalMethod=head?"HEAD":method??(body!==undefined?"POST":"GET");
+    const cwd:string[]=mods.getNamesFromUuids(dirTree);
+    (async()=>{
+      await getCurl();
+      const r=await libcurl.fetch(url!,{
+        method:finalMethod,
+        headers,
+        body:head?undefined:body,
+        redirect:follow?"follow":"manual",
+        signal,
+      });
+      const text=head?"":await r.text();
+      const lines:string[]=[];
+      if(include||head){
+        lines.push(`HTTP ${r.status} ${r.statusText}`.trim());
+        r.headers.forEach((v:string,k:string)=>lines.push(`${k}: ${v}`));
+        lines.push("");
+      }
+      if(out){
+        const path=parsePath(out,cwd);
+        const full=path.at(-1)!;
+        const i=full.lastIndexOf(".");
+        const[name,type]=i>0?[full.slice(0,i),full.slice(i+1)]:[full,"txt"];
+        mods.createFile(mods.getUuidsFromDirectoryNames(path.slice(0,-1)),{
+          name,
+          type,
+          data:text,
+          metadata:{
+            access:{
+              read:{
+                administrators:true,
+                users:true,
+                guests:false
+              },
+              write:{
+                administrators:true,
+                users:false,
+                guests:false
+              }
+            },
+            date:{
+              created:new Date(),
+              modified:new Date(),
+              accessed:new Date()
+            },
+            originalCreator:"administrator",
+            typeof:{
+              system:false,
+              directory:false,
+              executable:false
+            }
+          }
+        });
+      }else lines.push(...text.split("\n"));
+      if(lines.length)setLogs(x=>[...x,
+        ...lines.flatMap((m,i):logs.LogType[]=>[...(i>0?[{t:"nl"}as logs.LogType]:[]),{t:"l",m}]),
+      ]);
+    })().then(()=>promise[0](true)).catch((e:Error)=>promise[1]({
+      name:e.name||"CurlError",
+      message:e.message||String(e),
+    }));
   },
   grep:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
