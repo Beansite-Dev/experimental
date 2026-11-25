@@ -9,9 +9,9 @@
 
 ## mb-shell
 - use `.toml` files under `/.config` or `~/.config`
-- [important] nbridge function to allow js files to use react and mount their own window. I want shell to then recognize this and pass it to the wm
+- [important] bridge function to allow js files to use react and mount their own window. I want shell to then recognize this and pass it to the wm
 - implement commands
-  - rmdir
+  - rmdir (should b easy)
   - Create a package manager that can fetch from a github repo
     - put neofetch under that repo so it has to be installed
     - simply make the package manager put sh files in bin
