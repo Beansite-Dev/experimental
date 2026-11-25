@@ -21,7 +21,7 @@
 - shell file scripts will not properly use redirect operators
 
 
-## mb-win2
+## mb-win
 - this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
 - I want to not have to rely on a system like react-rnd for dragging or anything since maximization was a pain, but if im forced to, ill make it work better hopefully idk
 
