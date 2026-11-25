@@ -9,6 +9,7 @@
 
 ## mb-shell
 - use `.toml` files under `/.config` or `~/.config`
+- bridge function to allow js files to use react and mount their own window. I want shell to then recognize this and pass it to the wm
 - implement commands
   - rmdir
   - curl (using libcurl)
