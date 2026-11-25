@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DIRS=("./mb-fs2" "./mb-shell")
+DIRS=("./mb-fs2" "./mb-shell" "./mb-win")
 [[ $# -gt 0 ]] && DIRS=("$@")
 INTERVAL=2
 

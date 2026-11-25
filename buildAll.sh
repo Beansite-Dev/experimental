@@ -4,7 +4,7 @@
 
 set -e
 
-for dir in mb-fs2 mb-shell; do
+for dir in mb-fs2 mb-shell mb-win; do
   echo "Building $dir..."
   pushd "$dir" > /dev/null
   pnpm i && pnpm build
