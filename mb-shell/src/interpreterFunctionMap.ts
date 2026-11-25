@@ -4,6 +4,7 @@ import { SetStateAction } from "jotai/vanilla";
 import { parseLog } from "./logs";
 import { InvalidArgumentsError, OperationRequiresRecursiveFlagError, OperationRequiresRootError } from "./exceptions";
 import { mbsh } from "./store";
+//@ts-expect-error
 import { libcurl } from "libcurl.js/bundled";
 let curlReady:Promise<void>|undefined;
 const getCurl=()=>curlReady??=(async()=>{
