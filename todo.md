@@ -10,6 +10,8 @@
 ## mb-shell
 - use `.toml` files under `/.config` or `~/.config`
 - [important] bridge function to allow js files to use react and mount their own window. I want shell to then recognize this and pass it to the wm
+  - have the functions to mount windows pass to the shell from the wm
+  - allow to work without wm
 - implement commands
   - rmdir (should b easy)
   - Create a package manager that can fetch from a github repo
