@@ -12,6 +12,7 @@
   "dependencies": {
     "mb-fs2": "link:../mb-fs2",
     "mb-shell": "link:../mb-shell",
+    "mb-win": "link:../mb-win",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "sass": "^1.108.2"

@@ -1,8 +1,10 @@
 import { Fragment, useEffect, useRef, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import { Log, useShell } from "mb-shell";
+import { useWindows, WinHost } from "mb-win";
 import "./app.scss";
 import "mb-shell/style.css";
+import "mb-win/style.css";
 const Browser=({scope,fsMod,directoryTree}:{
   scope:mbfs.Directory;
   fsMod:ReturnType<typeof useFileSystem>[3];
@@ -144,6 +146,25 @@ const Shell=({logs,mods,dirTree,textAreaInputs,running}:{
     </div>
   </div>;
 };
+const TestComponent=({}):ReactElement=><h1>this is a test component</h1>;
+const WinWrapper=({}):ReactElement=>{
+  const{open}=useWindows();
+  return<div className="WinHost">
+    <div className="nav">
+      <span>browser</span>
+      <div className="hrv"/>
+      <button onClick={()=>open({
+        class:"StandardWindow",
+        id:"testwin",
+        component:TestComponent,
+        meta:{title:"Test Window"},
+      })}>+window</button>
+    </div>
+    <div className="winWrapper">
+      <WinHost/>
+    </div>
+  </div>;
+}
 export const App=({}):ReactElement=>{
   const[
     logs,
@@ -159,6 +180,7 @@ export const App=({}):ReactElement=>{
   const[tab,setTab]=useState<number>(0);
   return<>
     <h1>mb-test</h1>
+    <WinWrapper/>
     <Shell {...{logs,mods:fsMod,dirTree:directoryTree,textAreaInputs,running}}/>
     <Browser {...{scope,fsMod,directoryTree}}/>
     <hr/>

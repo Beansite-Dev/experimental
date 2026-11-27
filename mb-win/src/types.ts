@@ -4,7 +4,11 @@ export const WindowDimension=z.object({
   w:z.number().default(100),
   h:z.number().default(100),
 });
-export const WindowMetaBase=z.object({
+export const WindowRect=WindowDimension.extend({
+  x:z.number().default(0),
+  y:z.number().default(0),
+});
+export const WindowMeta=z.object({
   title:z.string().default(""),
   icon:z.string().default(""),
 });
@@ -31,17 +35,16 @@ export const WindowClassDef=z.object({
     close:true,
   }),
 });
-export const WindowMeta=WindowMetaBase.extend({size:WindowDimension});
-export const Window=z.object({
+export const WindowBase=z.object({
   class:z.string(),
   id:z.string(),
-  meta:WindowMeta,
+  uuid:z.uuidv4(),
   component:z.custom<ComponentType<any>>(),
 });
 export declare namespace mbwin{
   type WindowDimension=z.infer<typeof WindowDimension>;
-  type WindowMetaBase=z.infer<typeof WindowMetaBase>;
   type WindowClassDef=z.infer<typeof WindowClassDef>;
   type WindowMeta=z.infer<typeof WindowMeta>;
-  type Window=z.infer<typeof Window>;
+  type WindowRect=z.infer<typeof WindowRect>;
+  type WindowBase=z.infer<typeof WindowBase>;
 };
