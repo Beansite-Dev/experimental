@@ -22,8 +22,10 @@
 
 
 ## mb-win
-- this will likely not be reliant on the new shell or filesystem implementation, so proceed with it
-- I want to not have to rely on a system like react-rnd for dragging or anything since maximization was a pain, but if im forced to, ill make it work better hopefully idk
+- add titlebar buttons
+- add easy themeing syste via properties
+- add more meta keys that allow for more customizing, like frameless windows
+- add an enum package with the same icons from beansite 8.1
 
 
 ## beansite 8.2 (placeholder name)
