@@ -30,11 +30,13 @@ export const Window=({
     bounds="parent"
     dragHandleClassName="mb-titlebar"
     className="Window"
-    style={{zIndex:z,display:"flex",flexDirection:"column"}}
+    style={{zIndex:z}}
     onMouseDown={onFocus}
     onDragStop={(_e,d)=>onRectChange({x:d.x,y:d.y})}
     onResizeStop={(_e,_dir,el,_delta,pos)=>onRectChange({x:pos.x,y:pos.y,w:el.offsetWidth,h:el.offsetHeight})}>
-      <div className="mb-titlebar">{meta.title}</div>
-      <div style={{flex:1,overflow:"auto"}}>{children}</div>
+      <motion.div className="mb-titlebar">
+        <motion.span className="title">{meta.title}</motion.span>
+      </motion.div>
+      <motion.div className="Contents">{children}</motion.div>
   </Rnd>;
 }

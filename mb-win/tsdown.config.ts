@@ -10,7 +10,7 @@ export default defineConfig({
     fileName:'defaultWinStyles.css',
   },
   deps: {
-    neverBundle: ['react', 'framer-motion', 'react-rnd', 'zod', 'react-dom', 'react/jsx-runtime', 'jotai', /^jotai\//],
+    neverBundle: ['react', 'motion', 'react-rnd', 'zod', 'react-dom', 'react/jsx-runtime', 'jotai', /^jotai\//],
     dts: {
       neverBundle: ["zod"],
     },
