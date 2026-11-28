@@ -1,21 +1,24 @@
 .Window {
-  background: #ffffff50;
-  display: flex;
+  background: #ffffff90;
+  display: flex !important;
   flex-direction: column;
+  padding: 2px;
+  gap: 2px;
+  backdrop-filter: blur(8px);
   .mb-titlebar{
     display: flex;
     justify-content: flex-start;
     align-items: center;
     padding: 2px;
     height: 24px;
-    background: white;
     color: #101010;
     .Title{
       font-size: .875rem;
     }
   }
   .Contents {
-    flex: 1;
+    height: calc(100% - 24px - 2px);
     overflow: auto;
+    background: #fff;
   }
 }
