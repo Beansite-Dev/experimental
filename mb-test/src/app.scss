@@ -166,7 +166,8 @@ textarea {
   gap: 2px;
   padding: 2px;
   .winWrapper {
-    height: 100%;
+    height: calc(100% - 2rem - 2px);
+    margin-top: 2px;
     width: 100%;
     // background: pink;
   }
