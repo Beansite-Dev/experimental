@@ -23,6 +23,7 @@
 - add easy themeing syste via properties
 - add more meta keys that allow for more customizing, like frameless windows
 - add an enum package with the same icons from beansite 8.1
+- allow wm to read files under `/.config/wm/` to allow for different styling of the wm using css/scss files
 
 
 ## beansite 8.2 (placeholder name)
