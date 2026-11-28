@@ -24,10 +24,11 @@ type shellFunction=(
   keyboardInputBuffer:{getValue:()=>string[]},
   signal:AbortSignal,
   stdin:string|undefined,
+  wm:mbsh.wm,
   ...args:string[]
 )=>void;
 export const functionMapBase:{[key:string]:shellFunction|void;}={
-  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,inputPath:string):void=>{
+  cd:(command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,inputPath:string):void=>{
     //f=arrOfFileNames (shortened cuz my keyboard is ass)
     let parsed:string[];
     let f:string[]=parsePath(inputPath,mods.getNamesFromUuids(dirTree));
@@ -38,11 +39,11 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     ]);
     promise[0](true);
   },
-  wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,time)=>{
+  wait:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,time)=>{
     const t=setTimeout(()=>promise[0](true),parseInt(time));
     signal.addEventListener("abort",()=>clearTimeout(t),{once:true});
   },
-  cp:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,stdin,...args)=>{
+  cp:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,stdin,wm,...args)=>{
     const filePath:string[]=args.filter(x=>!x.startsWith("-"));
     if(filePath.length<2)return promise[1]({
       name:"InvalidArgumentsError",
@@ -103,7 +104,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     else mods.createFile(parentOfCopyUuids,copy as mbfs.File);
     promise[0](true);
   },
-  curl:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+  curl:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,...args:string[]):void=>{
     let url:string|undefined,method:string|undefined,body:string|undefined,out:string|undefined,user:string|undefined;
     let include=false,head=false,follow=false;
     const headers:Record<string,string>={};
@@ -203,7 +204,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       message:e.message||String(e),
     }));
   },
-  grep:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+  grep:(_command,_scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,...args:string[]):void=>{
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
     const[pattern,...targets]=args.filter(x=>!x.startsWith("-"));
     const has=(f:string):boolean=>flags.includes(f);
@@ -275,7 +276,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     ]);
     promise[0](true);
   },
-  mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,stdin,...args)=>{
+  mv:(command,scope,mods,setLogs,promise,dirTree,sudo,shellVars,setVars,keyboardInputBuffer,signal,stdin,wm,...args)=>{
     const filePath:string[]=args.filter(x=>!x.startsWith("-"));
     if(filePath.length<2)return promise[1]({
       name:"InvalidArgumentsError",
@@ -325,13 +326,13 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     }
     promise[0](true);
   },
-  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[])=>{
+  read:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,...args:string[])=>{
     // > potential usage
     // read -p "Enter your name: " user_name
     // echo "Hello, $user_name!"
     
   },
-  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+  ls:(_command,scope,mods,setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,...args:string[]):void=>{
     // new ls post rework
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0]||"./";
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
@@ -380,7 +381,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     ]);promise[0](true);}
   },
   cls:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs([]);promise[0](true);},
-  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,fileName:string):void=>{
+  touch:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,fileName:string):void=>{
     const name=fileName.split(".")[0];
     const type=fileName.split(".")[1]||"txt";
     mods.createFile(dirTree,{
@@ -415,7 +416,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     });
     promise[0](true);
   },
-  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,filePath):void=>{
+  cat:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,filePath):void=>{
     //no file given but something was piped in: pass it through
     if(!filePath&&stdin!==undefined){
       setLogs(x=>[...x,{t:"l",m:stdin}]);
@@ -435,7 +436,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     setLogs(x=>[...x,{t:"l",m}]);
     promise[0](true);
   },
-  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,filePath):void=>{
+  tac:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,filePath):void=>{
     const parsedPath:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
     if(parsedPath){
       const newFilePath=parsedPath.slice(0,-1);
@@ -452,7 +453,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
       promise[0](true);
     }
   },
-  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,newval,file)=>{
+  chmod:(command,scope,mods,setLogs,promise,dirTree,sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,newval,file)=>{
     const parsedPath:string[]=parsePath(file,mods.getNamesFromUuids(dirTree));
     const newFilePath=parsedPath.slice(0,-1);
     const newFileName=parsedPath.slice(-1)[0];
@@ -540,7 +541,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     mods.modifyFilesysteObjectAttributes(newFilePathUUIDs,uuid,{metadata});
     promise[0](true);
   },
-  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+  rm:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,...args:string[]):void=>{
     const filePath:string=args.filter(x=>!x.startsWith("-"))[0];
     const flags:string[]=args.filter(x=>x.startsWith("-")).map(x=>x.replace("-","").split("")).flat();
     const path:string[]=parsePath(filePath,mods.getNamesFromUuids(dirTree));
@@ -556,7 +557,7 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     mods.deleteFilesystemObject(mods.getUuidsFromDirectoryNames(parentName),childUuid);
     promise[0](true);
   },
-  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+  mkdir:(_command,_scope,mods,_setLogs,promise,dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,...args:string[]):void=>{
     const targets:string[]=args.filter(x=>!x.startsWith("-"));
     const flags=new Set(args.filter(x=>x.startsWith("-")).flatMap(x=>x.startsWith("--")?[x.slice(2)]:x.slice(1).split("")));
     const parents:boolean=flags.has("p")||flags.has("parents");
@@ -630,25 +631,23 @@ export const functionMapBase:{[key:string]:shellFunction|void;}={
     promise[0](true);
   },
   whoami:(_command,_scope,_mods,setLogs,promise,):void=>{setLogs(x=>[...x, {t:"l",m:`beansite/administrator`},]);promise[0](true)},
-  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,...args:string[]):void=>{
+  echo:(_command,_scope,_mods,setLogs,promise,_dirTree:string[],sudo,vars,setVars,keyboardInputBuffer,signal,stdin,wm,...args:string[]):void=>{
     setLogs(x=>[...x,...parseLog(args.join(" "))]);
     promise[0](true);
   }
 };
 // aliases go here. You can take function from the base function map and just set them to each other
 export const functionMap:Record<string,shellFunction>={
-  ...functionMapBase,
-  "":()=>{},
+  ...functionMapBase,"":()=>{},
   help:(_1,_2,_3,setLogs,promise,)=>{
     setLogs(x=>[...x,
       {t:"l",m:"Available commands:"},{t:"nl"},
-      ...Object.keys(functionMapBase)
-        .flatMap((x):logs.LogType[]=>{return[{t:"l",m:`  - ${x}`,},{t:"nl"}]})
+      ...Object.keys(functionMapBase).flatMap((x):logs.LogType[]=>{return[{t:"l",m:`  - ${x}`,},{t:"nl"}]}),
     ]);
     promise[0](true);
   },
-  dir: functionMapBase.ls!,
-  clear: functionMapBase.cls!,
+  dir:functionMapBase.ls!,
+  clear:functionMapBase.cls!,
   ll:(...args)=>functionMapBase.ls?.(...args,"-l"),
   "cd..":(...args)=>functionMapBase.cd?.(...args,".."),
 };

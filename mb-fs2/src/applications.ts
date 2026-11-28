@@ -1,6 +1,52 @@
 import type { mbfs } from "./atom.js";
 const formatMs=(ms:number)=>`${String(Math.floor(ms / 3600000)).padStart(2, '0')} hours, ${String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0')} minutes`;
 export const applications={
+  windowTest:{
+    name:"windowTest",
+    type:"js",
+    data:`const {useState}=React;
+const Counter=()=>{
+  const [n,setN]=useState(0);
+  return <button onClick={()=>setN(n+1)}>clicked {n}</button>;
+};
+mbshBridge.wm.registerClass({
+  name:"counter",
+  def:{minSize:{w:100,h:100},
+  defaultSize:{w:200,h:120},
+  singleton:false}
+});
+mbshBridge.wm.mountWindow({
+  class:"counter",
+  meta:{title:"windowTest: Counter!",},
+  id:"counter-1",
+  component:Counter
+});`,
+    metadata:{
+      access:{
+        read:{
+          administrators:true,
+          users:true,
+          guests:false,
+        },
+        write:{
+          administrators:true,
+          users:false,
+          guests:false,
+        },
+      },
+      date:{
+        created:new Date(),
+        modified:new Date(),
+        accessed:new Date(),
+      },
+      originalCreator:"root",
+      typeof:{
+        system:false,
+        directory:false,
+        executable:true,
+      }
+    },
+  }, 
   test:{
     name:"test",
     type:"sh",

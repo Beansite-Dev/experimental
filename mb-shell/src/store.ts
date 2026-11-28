@@ -25,6 +25,13 @@ export declare namespace mbsh {
     |SubstitutionOriginShellCommand
     |SingleAmpersandCommand
     |DoubleAmpersandCommand;
+  type wmFunctionType<P=any>=(props:P)=>Promise<boolean>;
+  interface wm {
+    mountWindow?:wmFunctionType;
+    closeWindow?:wmFunctionType;
+    focusWindow?:wmFunctionType;
+    registerClass?:wmFunctionType;
+  }
 }
 export const variableAtom=atom<mbsh.ShellVariable[]>([
   {

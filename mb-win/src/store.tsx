@@ -70,3 +70,6 @@ export const patchMetaAtom=atom(null,(_get,set,{uuid,patch}:{uuid:string,patch:P
   const win=windowAtomMap.get(uuid);
   if(win)set(win.meta,prev=>({...prev,...patch}));
 });
+export const registerWindowClassAtom=atom(null,(_get,set,{name,def}:{name:string,def:mbwin.WindowClassDef})=>{
+  set(windowClassDefAtom,prev=>({...prev,[name]:WindowClassDef.parse(def)}));
+});

@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactElement } from "react";
 import { useFileSystem, type mbfs } from "mb-fs2";
 import { Log, useShell } from "mb-shell";
-import { useWindows, WinHost } from "mb-win";
+import { useWindows, WinHost, type mbwin } from "mb-win";
 import "./app.scss";
 import "mb-shell/style.css";
 import "mb-win/style.css";
@@ -147,8 +147,11 @@ const Shell=({logs,mods,dirTree,textAreaInputs,running}:{
   </div>;
 };
 const TestComponent=({}):ReactElement=><h1>this is a test component</h1>;
-const WinWrapper=({}):ReactElement=>{
-  const{open}=useWindows();
+const WinWrapper=({open,close,focus}:{
+  open:ReturnType<typeof useWindows>["open"];
+  close:ReturnType<typeof useWindows>["close"];
+  focus:ReturnType<typeof useWindows>["focus"];
+}):ReactElement=>{
   return<div className="WinHost">
     <div className="nav">
       <span>browser</span>
@@ -166,6 +169,13 @@ const WinWrapper=({}):ReactElement=>{
   </div>;
 }
 export const App=({}):ReactElement=>{
+  const{open,close,focus,registerClass}=useWindows();
+  const wm={
+    mountWindow:async(args:Parameters<typeof open>[0])=>{open(args);return true;},
+    closeWindow:async(uuid:string)=>{close(uuid);return true;},
+    focusWindow:async(uuid:string)=>{focus(uuid);return true;},
+    registerClass:async(args:Parameters<typeof registerClass>[0])=>{registerClass(args);return true;},
+  };
   const[
     logs,
     setLogs,
@@ -176,11 +186,11 @@ export const App=({}):ReactElement=>{
     fsMod,
     textAreaInputs,
     running,
-  ]=useShell();
+  ]=useShell(wm);
   const[tab,setTab]=useState<number>(0);
   return<>
     <h1>mb-test</h1>
-    <WinWrapper/>
+    <WinWrapper {...{open,close,focus}}/>
     <Shell {...{logs,mods:fsMod,dirTree:directoryTree,textAreaInputs,running}}/>
     <Browser {...{scope,fsMod,directoryTree}}/>
     <hr/>

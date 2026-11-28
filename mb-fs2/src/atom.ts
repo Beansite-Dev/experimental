@@ -71,6 +71,7 @@ export const fsAtom=atom<mbfs.Directory>(mkDir("root",{
   [uuidv4()]:mkDir("bin",{
     [uuidv4()]:applications.neofetch,
     [uuidv4()]:applications.test,
+    [uuidv4()]:applications.windowTest,
   },meta("root",true,true)),
   [uuidv4()]:mkDir("home",{
     [uuidv4()]:mkDir("administrator",{

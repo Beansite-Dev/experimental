@@ -6,7 +6,7 @@ import { SetStateAction } from "jotai";
 import { runShellCommand } from "./runShellCommand";
 import { clamp, parsePath, parseShell } from "./lib";
 import { functionMap } from "./interpreterFunctionMap";
-export const useShell=():[
+export const useShell=(wm:mbsh.wm):[
   logs.LogType[],//logs
   ((update: SetStateAction<logs.LogType[]>)=>void),//logs setter
   (code:string,echo:boolean)=>Promise<void>,//interpreter
@@ -14,8 +14,8 @@ export const useShell=():[
   ReturnType<typeof useFileSystem>[1],//scope
   ReturnType<typeof useFileSystem>[2],//dirTree (in uuids)
   ReturnType<typeof useFileSystem>[3],//modifier functions
-  ComponentPropsWithRef<'textarea'>,
-  boolean,
+  ComponentPropsWithRef<'textarea'>,//ref for text area
+  boolean,//running status
 ]=>{
   const[logs,setLogs]=useAtom(logAtom);
   const[vars,setVars]=useAtom(variableAtom);
@@ -198,7 +198,18 @@ export const useShell=():[
           active.current++;
           setRunning(true);
           const p:Promise<boolean>=runShellCommand(
-            sub,mods.getCurrentScope(),mods,logsRef.current,setLogsLatest,mods.getCurrentDirTree(),interpreter,varsRef.current,setVarsLatest,keyboardInputBuffer,signal,
+            sub,
+            mods.getCurrentScope(),
+            mods,
+            logsRef.current,
+            setLogsLatest,
+            mods.getCurrentDirTree(),
+            interpreter,
+            varsRef.current,
+            setVarsLatest,
+            keyboardInputBuffer,
+            signal,
+            wm,
             stdin,
             next==="|"?t=>{pipeData=t;}:undefined,
           ).finally(()=>{
@@ -215,9 +226,7 @@ export const useShell=():[
           }
         }
       }
-    }finally{
-      sessions.current.delete(session);
-    }
+    }finally{sessions.current.delete(session);}
   };
   return[
     logs,

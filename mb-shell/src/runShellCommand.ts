@@ -5,6 +5,14 @@ import { useShell } from "./hook";
 import { mbsh } from "./store";
 import { functionMap } from "./interpreterFunctionMap";
 import { runJsScripts } from "./runJsScripts";
+const findFile=(d:mbfs.Directory,fileName:string):mbfs.File|undefined=>{
+  const[name,type]=fileName.split(".");
+  return Object.values(d.data).find(x=>!x.metadata.typeof.directory&&x.name===name&&(!type||(x as mbfs.File).type===type)) as mbfs.File|undefined;
+};
+const notFound=(cmd:string)=>({
+  name:"CommandNotFoundError",
+  message:`${cmd} : the term '${cmd}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
+});
 export const runShellCommand=(
   command:mbsh.ShellCommand,
   scope:mbfs.Directory,
@@ -17,6 +25,7 @@ export const runShellCommand=(
   setVars:(update:SetStateAction<mbsh.ShellVariable[]>)=>void,
   keyboardInputBuffer:{getValue:()=>string[]},
   signal:AbortSignal,
+  wm:mbsh.wm,
   stdin?:string,
   onPipe?:(text:string)=>void,
 ):Promise<boolean>=>{
@@ -95,7 +104,7 @@ export const runShellCommand=(
               else if("m" in e)cur+=e.m??"";
             }
             seen=next;
-          },dirTree,interpreter,vars,setVars,keyboardInputBuffer,signal).then(()=>{
+          },dirTree,interpreter,vars,setVars,keyboardInputBuffer,signal,wm).then(()=>{
             out.push(cur);
             return out.join("\n").trimEnd();
           });
@@ -107,58 +116,31 @@ export const runShellCommand=(
         }).catch(reject);
         return;
       }
-      const bin:mbfs.Directory=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(["bin"]));
-      const binCommandPointer:mbfs.File|undefined=bin.data[Object.keys(bin.data)
-        .filter(x=>
-          bin.data[x].name===args[0].split(".")[0]
-          &&(args[0].split(".")[1]
-            ?(bin.data[x] as mbfs.File).type===args[0].split(".")[1]
-            :true)
-        )[0]]as mbfs.File|undefined;
-      let parsedPath:{name:string;message:string;}|string[];
-      try{parsedPath=parsePath(args[0],dirTree);}
-      catch(e){parsedPath=e as {name:string;message:string;};}
-      if(
-        binCommandPointer
-        &&binCommandPointer.metadata.typeof.executable
-      ){
-        console.log(`found pointer for command ${binCommandPointer.name} in "/bin"`);
-        if(["bat","sh"].includes(binCommandPointer.type))
-          return interpreter(String(binCommandPointer.data),false).then(()=>resolve(true),reject);
-        return resolve(true);
-      }else if(Array.isArray(parsedPath)){
-        const pathOfInput:string[]=parsedPath.slice(0,-1);
-        const possibleFileName:string=parsedPath.slice(-1)[0];
-        const contentsOfParseInputPath:mbfs.Directory=mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(pathOfInput));
-        const filePointer=contentsOfParseInputPath.data[
-          Object.keys(contentsOfParseInputPath.data).filter(
-            x=>contentsOfParseInputPath.data[x].name===possibleFileName.split(".")[0]
-            &&(possibleFileName.split(".")[1]
-              ?(contentsOfParseInputPath.data[x]as mbfs.File).type===possibleFileName.split(".")[1]
-              :true)
-          )[0]];
-        if(filePointer&&filePointer.metadata.typeof.executable){
-          console.log(`found pointer for command ${possibleFileName}||${filePointer.name} in relatively in ${pathOfInput}`);
-          if(["bat","sh"].includes((filePointer as mbfs.File).type))
-            return interpreter(String(filePointer.data),false).then(()=>resolve(true),reject);
-          if(["js"].includes((filePointer as mbfs.File).type)){
-            return runJsScripts(
-              String(filePointer.data),
-              scope,mods,logs,setLogs,
-              dirTree,vars,setVars,keyboardInputBuffer,
-              signal
-            ).then(()=>resolve(true)).catch((e)=>reject(e));
-          }
-          return resolve(true);
-        }else return reject({
-          name:"CommandNotFoundError",
-          message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
-        });
+      const cwdNames=mods.getNamesFromUuids(dirTree);
+      const lookup=(pathNames:string[],fileName:string):mbfs.File|undefined=>{
+        try{return findFile(mods.getDirectoryContents(mods.getUuidsFromDirectoryNames(pathNames)),fileName);}
+        catch{return undefined;}
+      };
+      const run=(f:mbfs.File):Promise<unknown>|undefined=>{
+        if(["bat","sh"].includes(f.type))return interpreter(String(f.data),false);
+        if(f.type==="js")return runJsScripts(String(f.data),scope,mods,logs,setLogs,dirTree,vars,setVars,keyboardInputBuffer,signal,wm);
+        return undefined;
+      };
+      const binFile=lookup(["bin"],args[0]);
+      if(binFile?.metadata.typeof.executable){
+        console.log(`found pointer for command ${binFile.name} in "/bin"`);
+        const p=run(binFile);
+        return p?p.then(()=>resolve(true),reject):resolve(true);
       }
-      else return reject({
-        name:"CommandNotFoundError",
-        message:`${args[0]} : the term '${args[0]}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`,
-      });
+      let parsedPath:string[];
+      try{parsedPath=parsePath(args[0],cwdNames);}
+      catch{return reject(notFound(args[0]));}
+      const pathOfInput=parsedPath.slice(0,-1);
+      const target=lookup(pathOfInput,parsedPath.slice(-1)[0]);
+      if(!target?.metadata.typeof.executable)return reject(notFound(args[0]));
+      console.log(`found pointer for command ${target.name} in ${pathOfInput.join("/")}`);
+      const p=run(target);
+      return p?p.then(()=>resolve(true),reject):resolve(true);
     }
     fn(
       command.subcommand,
@@ -173,7 +155,8 @@ export const runShellCommand=(
       keyboardInputBuffer,
       signal,
       stdin,
-      ...args.slice(1)
+      wm,
+      ...args.slice(1),
     );
   }).then(()=>{
     if(onPipe){
@@ -210,8 +193,8 @@ export const runShellCommand=(
     return true;
   }).catch(e=>{
     if(signal.aborted)return false;
-    const err=e as {name:string;message:string};
-    setLogs(x=>[...x,{t:"nl"},...parseError(command.commandOfOrigin,err.name,err.message),]);
+    const err=e as {name:string;message?:string;reason?:string};
+    setLogs(x=>[...x,{t:"nl"},...parseError(command.commandOfOrigin,err.name,err.message??err.reason??""),]);
     return false;
   }).finally(()=>{
     if(onAbort)signal.removeEventListener("abort",onAbort);
