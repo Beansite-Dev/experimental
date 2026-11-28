@@ -154,7 +154,7 @@ const WinWrapper=({open,close,focus}:{
 }):ReactElement=>{
   return<div className="WinHost">
     <div className="nav">
-      <span>browser</span>
+      <span>windows manager preview</span>
       <div className="hrv"/>
       <button onClick={()=>open({
         class:"StandardWindow",
